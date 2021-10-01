@@ -1,9 +1,9 @@
 [package]
-name = "zxing-rs"
+name = "zxing_rs"
 version = "0.1.0"
 edition = "2018"
 license = "Apache-2.0"
-description = "zxing-rs is an open-source, multi-format 1D/2D barcode image processing library implemented in Rust, with ports to other languages."
+description = "zxing_rs is an open-source, multi-format 1D/2D barcode image processing library implemented in Rust, with ports to other languages."
 
 [lib]
 crate-type = ["cdylib"]
