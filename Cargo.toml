@@ -10,6 +10,10 @@ description = "zxing-rs is an open-source, multi-format 1D/2D barcode image proc
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name ="encode"
+path ="src/encode/bin/main.rs"
+
 [dependencies]
 hbar-core = {path = "./hbar-core"}
 structopt = "0.3.23"

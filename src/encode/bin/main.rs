@@ -1,9 +1,9 @@
 use hbar_core;
-use hbar_core::barcode_format::BarcodeFormat;
 use hbar_core::encode_hint_type::EncodeHintType;
 use hbar_core::multi_format_writer::{get_encoders, MultiFormatWriter};
 use hbar_core::writer::Writer;
 
+mod encoder_config;
 use crate::encoder_config::EncoderConfig;
 use std::collections::HashMap;
 use structopt::StructOpt;
@@ -29,4 +29,8 @@ pub fn encode() {
     );
     println!("{:#?}", config);
     println!("{:#?}", result.unwrap());
+}
+
+fn main() {
+    encode();
 }

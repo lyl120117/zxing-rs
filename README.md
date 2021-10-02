@@ -7,10 +7,10 @@ zxing-rs is an open-source, multi-format 1D/2D barcode image processing library 
 
 # 2. How to use
 ## 2.1 Run
-> cargo run --bin zxing-rs
+> cargo run --bin encode
 
 ## 2.2 Run with arguments
 - Help
-> cargo run --bin zxing-rs -- --help
+> cargo run --bin encode -- --help
 - Run with arguments
-> cargo run --bin zxing-rs -- -b QR_CODE "Hello"
+> cargo run --bin encode -- -b QR_CODE "Hello"
