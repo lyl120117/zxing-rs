@@ -1,16 +1,14 @@
 [package]
-name = "zxing_rust"
+name = "zxing-rs"
 version = "0.1.1"
 edition = "2018"
 license = "Apache-2.0"
-description = "zxing_rust is an open-source, multi-format 1D/2D barcode image processing library implemented in Rust, with ports to other languages."
+description = "zxing-rs is an open-source, multi-format 1D/2D barcode image processing library implemented in Rust, with ports to other languages."
 
-[lib]
-crate-type = ["cdylib"]
+#[lib]
+#crate-type = ["cdylib"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-#image = "0.23.14"
-image = { version = "0.23", optional = true }
-#rayon = "1.5.1"
+hbar-core = {path = "./hbar-core"}

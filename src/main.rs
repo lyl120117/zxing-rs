@@ -1,7 +1,6 @@
-mod lib;
+mod encoder;
+mod encoder_config;
 
 fn main() {
-    println!("Hello, world!");
-    let msg = lib::decode("test.png".to_string());
-    println!("msg: {}", msg);
+    encoder::encode();
 }
