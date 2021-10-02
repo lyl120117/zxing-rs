@@ -31,9 +31,3 @@ impl Writer for QRCodeWriter {
         Ok(BitMatrix {})
     }
 }
-
-// impl fmt::Display for QRCodeWriter{
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         write!(f, "{}", self.to_string())
-//     }
-// }

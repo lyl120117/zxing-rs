@@ -6,17 +6,10 @@ use hbar_core::writer::Writer;
 
 use crate::encoder_config::EncoderConfig;
 use std::collections::HashMap;
+use structopt::StructOpt;
 
 pub fn encode() {
-    let config = EncoderConfig {
-        barcode_format: BarcodeFormat::QR_CODE,
-        image_format: String::from("png"),
-        output_file: String::from("test.png"),
-        width: 32,
-        height: 32,
-        error_correction_level: String::from("Q"),
-        contents: String::from("Hello World!"),
-    };
+    let config = EncoderConfig::from_args();
     let formater = MultiFormatWriter {
         encoders: get_encoders(),
     };

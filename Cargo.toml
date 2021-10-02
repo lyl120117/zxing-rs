@@ -12,3 +12,4 @@ description = "zxing-rs is an open-source, multi-format 1D/2D barcode image proc
 
 [dependencies]
 hbar-core = {path = "./hbar-core"}
+structopt = "0.3.23"
