@@ -1,10 +1,7 @@
-use std::collections::HashMap;
-use std::convert::Infallible;
-use std::str::FromStr;
-
 use strum_macros::EnumString;
+use strum_macros::ToString;
 
-#[derive(Debug, PartialEq, Eq, Hash, EnumString)]
+#[derive(Debug, PartialEq, Eq, Hash, EnumString, ToString)]
 pub enum BarcodeFormat {
     /** Aztec 2D barcode format. */
     AZTEC,

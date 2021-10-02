@@ -7,6 +7,12 @@ use std::collections::HashMap;
 
 pub struct DataMatrixWriter;
 
+impl DataMatrixWriter {
+    pub fn new() -> Self {
+        DataMatrixWriter {}
+    }
+}
+
 impl Writer for DataMatrixWriter {
     fn encode(
         &self,

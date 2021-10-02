@@ -1,4 +1,7 @@
-#[derive(Debug, PartialEq, Eq, Hash)]
+use strum_macros::EnumString;
+use strum_macros::ToString;
+
+#[derive(Debug, PartialEq, Eq, Hash, EnumString, ToString)]
 pub enum EncodeHintType {
     /**
      * Specifies what degree of error correction to use, for example in QR Codes.

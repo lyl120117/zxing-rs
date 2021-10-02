@@ -6,13 +6,15 @@ use crate::qrcode::qrcode_writer::QRCodeWriter;
 use crate::writer::Writer;
 use crate::writer_exception::WriterException;
 use std::collections::HashMap;
-use std::fmt::Display;
 
 pub fn get_encoders() -> HashMap<BarcodeFormat, Box<Writer>> {
     let mut maps: HashMap<BarcodeFormat, Box<Writer>> = HashMap::new();
 
-    maps.insert(BarcodeFormat::QR_CODE, Box::new(QRCodeWriter {}));
-    maps.insert(BarcodeFormat::QR_CODE, Box::new(DataMatrixWriter {}));
+    maps.insert(BarcodeFormat::QR_CODE, Box::new(QRCodeWriter::new()));
+    maps.insert(
+        BarcodeFormat::DATA_MATRIX,
+        Box::new(DataMatrixWriter::new()),
+    );
     return maps;
 }
 
