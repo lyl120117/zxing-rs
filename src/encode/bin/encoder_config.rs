@@ -22,7 +22,7 @@ pub struct EncoderConfig {
     #[structopt(short = "h", default_value = "300")]
     pub height: u32,
     /// Error correction level for the encoding
-    #[structopt(short = "e", default_value = "L")]
+    #[structopt(short = "e", default_value = "None")]
     pub error_correction_level: String,
     /// Text to encode
     #[structopt(parse(from_str), default_value = "Hello World!")]

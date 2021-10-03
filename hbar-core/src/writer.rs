@@ -1,7 +1,7 @@
 use crate::barcode_format::BarcodeFormat;
-use crate::common::bit_matrix::BitMatrix;
+use crate::common::BitMatrix;
 use crate::encode_hint_type::EncodeHintType;
-use crate::writer_exception::WriterException;
+use crate::WriterException;
 use std::collections::HashMap;
 
 pub trait Writer {

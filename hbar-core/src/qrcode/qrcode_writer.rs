@@ -1,20 +1,26 @@
 use crate::barcode_format::BarcodeFormat;
-use crate::common::bit_matrix::BitMatrix;
+use crate::common::BitMatrix;
 use crate::encode_hint_type::EncodeHintType;
-use crate::qrcode::decoder::error_correction_level::ErrorCorrectionLevel;
+use crate::qrcode::decoder::ErrorCorrectionLevel;
+use crate::qrcode::encoder::encoder::Encoder;
+use crate::qrcode::encoder::QRCode;
 use crate::writer::Writer;
-use crate::writer_exception::WriterException;
+use crate::WriterException;
 
 use std::collections::HashMap;
 use std::str::FromStr;
 
 pub struct QRCodeWriter {
     pub quiet_zone_size: u32,
+    encoder: Encoder,
 }
 
 impl QRCodeWriter {
     pub fn new() -> Self {
-        QRCodeWriter { quiet_zone_size: 4 }
+        QRCodeWriter {
+            quiet_zone_size: 4,
+            encoder: Encoder::new(),
+        }
     }
 }
 
@@ -45,17 +51,15 @@ impl Writer for QRCodeWriter {
         }
         if !format.eq(&BarcodeFormat::QRCode) {
             return Err(WriterException {
-                reason: String::from(
-                    "Can only encode QRCode, but got: ".to_owned() + &format.to_string()[..],
-                ),
+                reason: String::from(format!("Can only encode QRCode, but got: {:?}", format)),
             });
         }
         if width == 0 || height == 0 {
             return Err(WriterException {
-                reason: String::from(
-                    "Requested dimensions are too small: ".to_owned() + &width.to_string()[..],
-                ) + &"x".to_owned()[..]
-                    + &height.to_string()[..],
+                reason: String::from(format!(
+                    "Requested dimensions are too small: {}x{}",
+                    width, height
+                )),
             });
         }
 
@@ -78,6 +82,23 @@ impl Writer for QRCodeWriter {
             quiet_zone = self.quiet_zone_size;
         }
 
-        Ok(BitMatrix {})
+        let code = self
+            .encoder
+            .encode_hints(contents, error_correction_level, hints)
+            .unwrap();
+        self.render_result(code, width, height, quiet_zone)
+    }
+}
+
+impl QRCodeWriter {
+    pub fn render_result(
+        &self,
+        code: QRCode,
+        width: u32,
+        height: u32,
+        quiet_zone: u32,
+    ) -> Result<BitMatrix, WriterException> {
+        let output = BitMatrix::new();
+        Ok(output)
     }
 }

@@ -1,7 +1,7 @@
 use hbar_core;
 use hbar_core::encode_hint_type::EncodeHintType;
-use hbar_core::multi_format_writer::{get_encoders, MultiFormatWriter};
 use hbar_core::writer::Writer;
+use hbar_core::{get_encoders, MultiFormatWriter};
 
 mod encoder_config;
 use crate::encoder_config::EncoderConfig;
@@ -14,12 +14,15 @@ pub fn encode() {
         encoders: get_encoders(),
     };
     let mut hints: HashMap<EncodeHintType, &String> = HashMap::new();
-    if !config.error_correction_level.is_empty() {
+    if !config.error_correction_level.is_empty()
+        && config.error_correction_level != String::from("None")
+    {
         hints.insert(
             EncodeHintType::ErrorCorrection,
             &config.error_correction_level,
         );
     }
+    println!("{:#?}", config);
     let result = formater.encode_hints(
         &config.contents,
         &config.barcode_format,
@@ -27,7 +30,6 @@ pub fn encode() {
         config.height,
         hints,
     );
-    println!("{:#?}", config);
     println!("{:#?}", result.unwrap());
 }
 

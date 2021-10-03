@@ -1,10 +1,10 @@
 use crate::barcode_format::BarcodeFormat;
-use crate::common::bit_matrix::BitMatrix;
-use crate::datamatrix::datamatrix_writer::DataMatrixWriter;
+use crate::common::BitMatrix;
+use crate::datamatrix::DataMatrixWriter;
 use crate::encode_hint_type::EncodeHintType;
-use crate::qrcode::qrcode_writer::QRCodeWriter;
+use crate::qrcode::QRCodeWriter;
 use crate::writer::Writer;
-use crate::writer_exception::WriterException;
+use crate::WriterException;
 use std::collections::HashMap;
 
 pub fn get_encoders() -> HashMap<BarcodeFormat, Box<dyn Writer>> {
@@ -44,8 +44,5 @@ impl Writer for MultiFormatWriter {
         let resut = encoder.encode_hints(contents, format, width, height, hints);
         println!("encode end!");
         resut
-        // Err(WriterException {
-        //     reason: String::from("Unknown"),
-        // })
     }
 }

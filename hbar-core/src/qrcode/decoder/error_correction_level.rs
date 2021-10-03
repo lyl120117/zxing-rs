@@ -1,7 +1,9 @@
-use strum_macros::EnumString;
-use strum_macros::ToString;
+use strum_macros::{EnumString, EnumVariantNames, ToString};
+// You need to import the trait, to have access to VARIANTS
+use strum::VariantNames;
 
-#[derive(Debug, PartialEq, Eq, Hash, EnumString, ToString)]
+#[derive(Debug, PartialEq, Eq, Hash, EnumString, ToString, EnumVariantNames)]
+#[strum(serialize_all = "kebab_case")]
 pub enum ErrorCorrectionLevel {
     /** L = ~7% correction */
     L,
@@ -11,4 +13,23 @@ pub enum ErrorCorrectionLevel {
     Q,
     /** H = ~30% correction */
     H,
+}
+
+impl ErrorCorrectionLevel {
+    pub fn ordinal(&self) -> usize {
+        match self {
+            ErrorCorrectionLevel::L => 0,
+            ErrorCorrectionLevel::M => 1,
+            ErrorCorrectionLevel::Q => 2,
+            ErrorCorrectionLevel::H => 3,
+        }
+    }
+
+    pub fn check(ec_level: &String) -> bool {
+        let levels = ErrorCorrectionLevel::VARIANTS;
+        if levels.contains(&&ec_level[..]) {
+            return true;
+        }
+        return false;
+    }
 }
