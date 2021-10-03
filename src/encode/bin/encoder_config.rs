@@ -7,7 +7,7 @@ use structopt::StructOpt;
 #[structopt(name = "zxing-rs", about = "Usage of zxing-rs.")]
 pub struct EncoderConfig {
     /// Format to encode, from BarcodeFormat class. Not all formats are supported
-    #[structopt(short = "b", parse(try_from_str), default_value = "QR_CODE")]
+    #[structopt(short = "b", parse(try_from_str), default_value = "QRCode")]
     pub barcode_format: BarcodeFormat,
     /// Image output format, such as PNG, JPG, GIF
     #[structopt(short = "f", default_value = "PNG")]

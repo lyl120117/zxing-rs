@@ -16,7 +16,7 @@ pub fn encode() {
     let mut hints: HashMap<EncodeHintType, &String> = HashMap::new();
     if !config.error_correction_level.is_empty() {
         hints.insert(
-            EncodeHintType::ERROR_CORRECTION,
+            EncodeHintType::ErrorCorrection,
             &config.error_correction_level,
         );
     }

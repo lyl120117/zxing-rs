@@ -9,12 +9,12 @@ use std::collections::HashMap;
 use std::str::FromStr;
 
 pub struct QRCodeWriter {
-    pub QUIET_ZONE_SIZE: u32,
+    pub quiet_zone_size: u32,
 }
 
 impl QRCodeWriter {
     pub fn new() -> Self {
-        QRCodeWriter { QUIET_ZONE_SIZE: 4 }
+        QRCodeWriter { quiet_zone_size: 4 }
     }
 }
 
@@ -43,10 +43,10 @@ impl Writer for QRCodeWriter {
                 reason: String::from("Found empty contents."),
             });
         }
-        if !format.eq(&BarcodeFormat::QR_CODE) {
+        if !format.eq(&BarcodeFormat::QRCode) {
             return Err(WriterException {
                 reason: String::from(
-                    "Can only encode QR_CODE, but got: ".to_owned() + &format.to_string()[..],
+                    "Can only encode QRCode, but got: ".to_owned() + &format.to_string()[..],
                 ),
             });
         }
@@ -60,9 +60,9 @@ impl Writer for QRCodeWriter {
         }
 
         let error_correction_level;
-        if hints.contains_key(&EncodeHintType::ERROR_CORRECTION) {
+        if hints.contains_key(&EncodeHintType::ErrorCorrection) {
             error_correction_level = ErrorCorrectionLevel::from_str(
-                hints.get(&EncodeHintType::ERROR_CORRECTION).unwrap(),
+                hints.get(&EncodeHintType::ErrorCorrection).unwrap(),
             )
             .unwrap();
         } else {
@@ -75,7 +75,7 @@ impl Writer for QRCodeWriter {
 
             quiet_zone = srt_num.parse::<u32>().unwrap();
         } else {
-            quiet_zone = self.QUIET_ZONE_SIZE;
+            quiet_zone = self.quiet_zone_size;
         }
 
         Ok(BitMatrix {})

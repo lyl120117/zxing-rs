@@ -11,17 +11,17 @@ pub enum EncodeHintType {
      * In all cases, it can also be a {@link String} representation of the desired value as well.
      * Note: an Aztec symbol should have a minimum of 25% EC words.
      */
-    ERROR_CORRECTION,
+    ErrorCorrection,
 
     /**
      * Specifies what character encoding to use where applicable (type {@link String})
      */
-    CHARACTER_SET,
+    CharacterSet,
 
     /**
      * Specifies the matrix shape for Data Matrix
      */
-    DATA_MATRIX_SHAPE,
+    DataMatrixShape,
 
     /**
      * Specifies margin, in pixels, to use when generating the barcode. The meaning can vary
@@ -34,17 +34,17 @@ pub enum EncodeHintType {
      * Specifies whether to use compact mode for PDF417 (type {@link Boolean}, or "true" or "false"
      * {@link String} value).
      */
-    PDF417_COMPACT,
+    Pdf417Compact,
 
     /**
      * Specifies what compaction mode to use for PDF417.
      */
-    PDF417_COMPACTION,
+    Pdf417Compaction,
 
     /**
      * Specifies the minimum and maximum number of rows and columns for PDF417
      */
-    PDF417_DIMENSIONS,
+    Pdf417Dimensions,
 
     /**
      * Specifies the required number of layers for an Aztec code.
@@ -53,13 +53,13 @@ pub enum EncodeHintType {
      * A positive number (1, 2, .. 32) specifies a normal (non-compact) Aztec code.
      * (Type {@link Integer}, or {@link String} representation of the integer value).
      */
-    AZTEC_LAYERS,
+    AztecLayers,
 
     /**
      * Specifies the exact version of QR code to be encoded.
      * (Type {@link Integer}, or {@link String} representation of the integer value).
      */
-    QR_VERSION,
+    QRVersion,
 
     /**
      * Specifies the QR code mask pattern to be used. Allowed values are
@@ -67,16 +67,16 @@ pub enum EncodeHintType {
      * the optimal mask pattern.
      * * (Type {@link Integer}, or {@link String} representation of the integer value).
      */
-    QR_MASK_PATTERN,
+    QRMaskPattern,
 
     /**
      * Specifies whether the data should be encoded to the GS1 standard (type {@link Boolean}, or "true" or "false"
      * {@link String } value).
      */
-    GS1_FORMAT,
+    Gs1Format,
 
     /**
      * Forces which encoding will be used. Currently only used for Code-128 code sets (Type {@link String}). Valid values are "A", "B", "C".
      */
-    FORCE_CODE_SET,
+    ForceCodeSet,
 }
