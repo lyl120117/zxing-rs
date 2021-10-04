@@ -2,18 +2,18 @@ use crate::qrcode::decoder::Version;
 use strum_macros::EnumString;
 use strum_macros::ToString;
 
-#[derive(Debug, PartialEq, Eq, Hash, EnumString, ToString, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, EnumString, ToString, Clone)]
 pub enum Mode {
-    Terminator([u32; 3], usize),
-    Numeric([u32; 3], usize),
-    Alphanumeric([u32; 3], usize),
-    StructuredAppend([u32; 3], usize),
-    Byte([u32; 3], usize),
-    ECI([u32; 3], usize),
-    Kanji([u32; 3], usize),
-    Fnc1FirstPosition([u32; 3], usize),
-    Fnc1SecondPosition([u32; 3], usize),
-    Hanzi([u32; 3], usize),
+    Terminator([i32; 3], i32),
+    Numeric([i32; 3], i32),
+    Alphanumeric([i32; 3], i32),
+    StructuredAppend([i32; 3], i32),
+    Byte([i32; 3], i32),
+    ECI([i32; 3], i32),
+    Kanji([i32; 3], i32),
+    Fnc1FirstPosition([i32; 3], i32),
+    Fnc1SecondPosition([i32; 3], i32),
+    Hanzi([i32; 3], i32),
 }
 
 impl Mode {
@@ -48,7 +48,7 @@ impl Mode {
         Mode::Hanzi([8, 10, 12], 0x0D)
     }
 
-    pub fn get_bits(&self) -> usize {
+    pub fn get_bits(&self) -> i32 {
         match self {
             Mode::Terminator(character_count_bits_for_versions, bits) => *bits,
             Mode::Numeric(character_count_bits_for_versions, bits) => *bits,
@@ -61,5 +61,53 @@ impl Mode {
             Mode::Fnc1SecondPosition(character_count_bits_for_versions, bits) => *bits,
             Mode::Hanzi(character_count_bits_for_versions, bits) => *bits,
         }
+    }
+
+    fn character_count_bits_for_versions(&self) -> [i32; 3] {
+        match self {
+            Mode::Terminator(character_count_bits_for_versions, bits) => {
+                *character_count_bits_for_versions
+            }
+            Mode::Numeric(character_count_bits_for_versions, bits) => {
+                *character_count_bits_for_versions
+            }
+            Mode::Alphanumeric(character_count_bits_for_versions, bits) => {
+                *character_count_bits_for_versions
+            }
+            Mode::StructuredAppend(character_count_bits_for_versions, bits) => {
+                *character_count_bits_for_versions
+            }
+            Mode::Byte(character_count_bits_for_versions, bits) => {
+                *character_count_bits_for_versions
+            }
+            Mode::ECI(character_count_bits_for_versions, bits) => {
+                *character_count_bits_for_versions
+            }
+            Mode::Kanji(character_count_bits_for_versions, bits) => {
+                *character_count_bits_for_versions
+            }
+            Mode::Fnc1FirstPosition(character_count_bits_for_versions, bits) => {
+                *character_count_bits_for_versions
+            }
+            Mode::Fnc1SecondPosition(character_count_bits_for_versions, bits) => {
+                *character_count_bits_for_versions
+            }
+            Mode::Hanzi(character_count_bits_for_versions, bits) => {
+                *character_count_bits_for_versions
+            }
+        }
+    }
+
+    pub fn get_character_count_bits(&self, version: &Version) -> i32 {
+        let number = version.get_version_number();
+        let offset;
+        if number <= 9 {
+            offset = 0;
+        } else if number <= 26 {
+            offset = 1;
+        } else {
+            offset = 2;
+        }
+        self.character_count_bits_for_versions()[offset]
     }
 }

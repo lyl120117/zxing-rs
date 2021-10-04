@@ -5,7 +5,7 @@ use strum_macros::ToString;
 
 use crate::WriterException;
 
-#[derive(Debug, PartialEq, Eq, Hash, EnumString, ToString, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, EnumString, ToString, Clone)]
 pub enum Charset {
     ASCII,
     ISO8859_1,

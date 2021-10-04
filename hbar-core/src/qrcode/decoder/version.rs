@@ -5,22 +5,23 @@ use crate::WriterException;
  * This includes the number of data codewords, and the number of times a block with these
  * parameters is used consecutively in the QR code version's format.</p>
  */
+#[derive(Debug)]
 pub struct ECB {
-    count: usize,
-    data_codewords: usize,
+    count: i32,
+    data_codewords: i32,
 }
 
 impl ECB {
-    pub fn new(count: usize, data_codewords: usize) -> ECB {
+    pub fn new(count: i32, data_codewords: i32) -> ECB {
         ECB {
             count: count,
             data_codewords: data_codewords,
         }
     }
-    pub fn get_count(&self) -> usize {
+    pub fn get_count(&self) -> i32 {
         self.count
     }
-    pub fn get_data_codewords(&self) -> usize {
+    pub fn get_data_codewords(&self) -> i32 {
         self.data_codewords
     }
 }
@@ -31,24 +32,26 @@ impl ECB {
 * each set of blocks. It also holds the number of error-correction codewords per block since it
 * will be the same across all blocks within one version.</p>
 */
+
+#[derive(Debug)]
 pub struct ECBlocks {
-    ec_codewords_per_block: usize,
+    ec_codewords_per_block: i32,
     ec_blocks: Vec<ECB>,
 }
 
 impl ECBlocks {
-    pub fn new(ec_codewords_per_block: usize, ec_blocks: Vec<ECB>) -> ECBlocks {
+    pub fn new(ec_codewords_per_block: i32, ec_blocks: Vec<ECB>) -> ECBlocks {
         ECBlocks {
             ec_codewords_per_block: ec_codewords_per_block,
             ec_blocks: ec_blocks,
         }
     }
 
-    pub fn get_ec_codewords_per_block(&self) -> usize {
+    pub fn get_ec_codewords_per_block(&self) -> i32 {
         self.ec_codewords_per_block
     }
 
-    pub fn get_num_blocks(&self) -> usize {
+    pub fn get_num_blocks(&self) -> i32 {
         let mut total = 0;
         for ecb_block in self.ec_blocks.iter() {
             total += ecb_block.get_count();
@@ -56,7 +59,7 @@ impl ECBlocks {
         return total;
     }
 
-    pub fn get_total_ec_codewords(&self) -> usize {
+    pub fn get_total_ec_codewords(&self) -> i32 {
         self.ec_codewords_per_block * self.get_num_blocks()
     }
 
@@ -65,12 +68,13 @@ impl ECBlocks {
     }
 }
 
+#[derive(Debug)]
 pub struct Version {
-    version_decode_info: Vec<u32>,
-    version_number: usize,
-    alignment_pattern_centers: Vec<u32>,
+    version_decode_info: Vec<i32>,
+    version_number: i32,
+    alignment_pattern_centers: Vec<i32>,
     ec_blocks: Vec<ECBlocks>,
-    total_codewords: usize,
+    total_codewords: i32,
 }
 
 fn build_versions() -> Vec<Version> {
@@ -139,23 +143,20 @@ impl Versions {
         }
     }
 
-    pub fn get_version_for_number(
-        &self,
-        version_number: usize,
-    ) -> Result<&Version, WriterException> {
+    pub fn get_version_for_number(&self, version_number: i32) -> Result<&Version, WriterException> {
         if version_number < 1 || version_number > 40 {
             return Err(WriterException {
                 reason: String::from("Version number only has to be between 1 and 40"),
             });
         }
-        Ok(&self.versions[version_number - 1])
+        Ok(&self.versions[(version_number - 1) as usize])
     }
 }
 
 impl Version {
     pub fn new(
-        version_number: usize,
-        alignment_pattern_centers: Vec<u32>,
+        version_number: i32,
+        alignment_pattern_centers: Vec<i32>,
         ec_blocks: Vec<ECBlocks>,
     ) -> Version {
         let mut total = 0;
@@ -179,23 +180,23 @@ impl Version {
         }
     }
 
-    pub fn get_version_number(&self) -> usize {
+    pub fn get_version_number(&self) -> i32 {
         self.version_number
     }
 
-    pub fn get_alignment_pattern_centers(&self) -> &Vec<u32> {
+    pub fn get_alignment_pattern_centers(&self) -> &Vec<i32> {
         &self.alignment_pattern_centers
     }
 
-    pub fn get_total_codewords(&self) -> usize {
+    pub fn get_total_codewords(&self) -> i32 {
         self.total_codewords
     }
 
-    pub fn get_dimension_for_version(&self) -> usize {
+    pub fn get_dimension_for_version(&self) -> i32 {
         self.version_number * 4 + 17
     }
 
-    pub fn get_ec_blocks_for_level(&self, ec_level: ErrorCorrectionLevel) -> &ECBlocks {
+    pub fn get_ec_blocks_for_level(&self, ec_level: &ErrorCorrectionLevel) -> &ECBlocks {
         &self.ec_blocks[ec_level.ordinal()]
     }
 }

@@ -2,7 +2,7 @@ use crate::common::BitArray;
 use crate::common::Charset;
 use crate::encode_hint_type::EncodeHintType;
 use crate::qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, Versions};
-use crate::qrcode::encoder::QRCode;
+use crate::qrcode::encoder::{BlockPair, ByteMatrix, MatrixUtil, QRCode};
 use crate::WriterException;
 
 use std::collections::HashMap;
@@ -57,6 +57,7 @@ impl Encoder {
         // Pick an encoding mode appropriate for the content. Note that this will not attempt to use
         // multiple modes / segments even if that were more efficient. Twould be nice.
         let mode = self.choose_mode(content, &encoding).unwrap();
+        println!("mode: {:?}", mode);
 
         // This will store the header information, like mode and
         // length, as well as "header" segments like an ECI segment.
@@ -81,14 +82,73 @@ impl Encoder {
         let mut data_bits = BitArray::new();
         self.append_bytes(content, &mode, &mut data_bits, &encoding);
 
-        // let mut version = Version::new();
+        let version;
         if hints.contains_key(&EncodeHintType::QRVersion) {
             todo!("QRVersion")
         } else {
-            println!("QRVersion")
+            version = self
+                .recommend_version(&ec_level, &mode, &mut header_bits, &mut data_bits)
+                .unwrap();
+        }
+        println!("version: {:?}", version);
+
+        let mut header_and_data_bits = BitArray::new();
+        header_and_data_bits.append_bit_array(&mut header_bits);
+        // Find "length" of main segment and write it
+        let num_letters;
+        if mode == Mode::get_byte() {
+            num_letters = data_bits.get_size_in_bytes()
+        } else {
+            num_letters = content.len() as i32
+        }
+        self.append_length_info(num_letters, version, &mode, &mut header_and_data_bits);
+        // Put data together into the overall payload
+        header_and_data_bits.append_bit_array(&mut data_bits);
+
+        let ec_blocks = version.get_ec_blocks_for_level(&ec_level);
+        let num_data_bytes = version.get_total_codewords() - ec_blocks.get_total_ec_codewords();
+        // Terminate the bits properly.
+        self.terminate_bits(num_data_bytes, &mut header_and_data_bits);
+
+        println!("header_and_data_bits: {:?}", header_and_data_bits);
+
+        // Interleave data bits with error correction code.
+        let mut final_bits = self
+            .interleave_with_ec_bytes(
+                &mut header_and_data_bits,
+                version.get_total_codewords(),
+                num_data_bytes,
+                ec_blocks.get_num_blocks(),
+            )
+            .unwrap();
+        println!("final_bits: {:?}", final_bits);
+
+        //  Choose the mask pattern and set to "qrCode".
+        let dimension = version.get_dimension_for_version();
+        let mut matrix = ByteMatrix::new(dimension, dimension);
+
+        // Enable manual selection of the pattern to be used via hint
+        let mut mask_pattern = -1;
+        if hints.contains_key(&EncodeHintType::QRMaskPattern) {
+            let hint_mask_pattern = hints.get(&EncodeHintType::QRMaskPattern).unwrap();
+            let hint_mask_pattern = hint_mask_pattern.parse::<i32>().unwrap();
+            if QRCode::is_valid_mask_pattern(hint_mask_pattern) {
+                mask_pattern = hint_mask_pattern
+            }
         }
 
-        Ok(QRCode::new())
+        if mask_pattern == -1 {
+            mask_pattern = self
+                .choose_mask_pattern(&mut final_bits, &ec_level, &version, &mut matrix)
+                .unwrap();
+        }
+
+        // Build the matrix and set it to "qrCode".
+        // MatrixUtil::buildMatrix(finalBits, ecLevel, version, maskPattern, matrix);
+        let qr_code = QRCode::new(&mode, &ec_level, &version, mask_pattern, &matrix);
+
+        todo!();
+        // Ok(QRCode::new())
     }
 
     pub fn choose_mode(
@@ -102,10 +162,9 @@ impl Encoder {
         let mut has_numeric = false;
         let mut has_alphanumeric = false;
         for c in content.chars() {
-            println!("c: {}", c);
             if c >= '0' && c <= '9' {
                 has_numeric = true;
-            } else if self._get_alphanumeric_code(c as usize) != -1 {
+            } else if self._get_alphanumeric_code(c as i32) != -1 {
                 has_alphanumeric = true;
             } else {
                 return Ok(Mode::get_byte());
@@ -137,15 +196,15 @@ impl Encoder {
         return true;
     }
 
-    fn _get_alphanumeric_code(&self, code: usize) -> i32 {
-        if code < self.alphanumeric_table.len() {
-            return self.alphanumeric_table[code];
+    fn _get_alphanumeric_code(&self, code: i32) -> i32 {
+        if code < self.alphanumeric_table.len() as i32 {
+            return self.alphanumeric_table[code as usize];
         }
         return -1;
     }
 
     fn append_mode_info(&self, mode: &Mode, bits: &mut BitArray) {
-        bits.append_bits(mode.get_bits() as u32, 4);
+        bits.append_bits(mode.get_bits() as i32, 4);
     }
 
     fn append_bytes(&self, content: &String, mode: &Mode, bits: &mut BitArray, encoding: &Charset) {
@@ -164,18 +223,18 @@ impl Encoder {
         let length = content.len();
         let mut i = 0;
         let mut chars = content.chars();
-        let char0 = '0' as u32;
+        let char0 = '0' as i32;
         while i < length {
-            let num1 = chars.next().unwrap() as u32 - char0;
+            let num1 = chars.next().unwrap() as i32 - char0;
             if i + 2 < length {
                 // Encode three numeric letters in ten bits.
-                let num2 = chars.next().unwrap() as u32 - char0;
-                let num3 = chars.next().unwrap() as u32 - char0;
+                let num2 = chars.next().unwrap() as i32 - char0;
+                let num3 = chars.next().unwrap() as i32 - char0;
                 bits.append_bits(num1 * 100 + num2 * 10 + num3, 10);
                 i += 3;
             } else if i + 1 < length {
                 // Encode two numeric letters in seven bits.
-                let num2 = chars.next().unwrap() as u32 - char0;
+                let num2 = chars.next().unwrap() as i32 - char0;
                 bits.append_bits(num1 * 10 + num2, 7);
                 i += 2;
             } else {
@@ -198,31 +257,319 @@ impl Encoder {
         todo!("append_kanji_bytes")
     }
 
-    // /**
-    //  * Decides the smallest version of QR code that will contain all of the provided data.
-    //  *
-    //  * @throws WriterException if the data cannot fit in any version
-    //  */
-    // fn recommendVersion(
-    //     &self,
-    //     ec_level: ErrorCorrectionLevel,
-    //     mode: &Mode,
-    //     header_bits: &mut BitArray,
-    //     data_bits: &mut BitArray,
-    // ) -> Result<Version, WriterException> {
-    //     // Hard part: need to know version to know how many bits length takes. But need to know how many
-    //     // bits it takes to know version. First we take a guess at version by assuming version will be
-    //     // the minimum, 1:
-    // }
+    /**
+     * Append length info. On success, store the result in "bits".
+     */
+    fn append_length_info(
+        &self,
+        num_letters: i32,
+        version: &Version,
+        mode: &Mode,
+        bits: &mut BitArray,
+    ) {
+        let num_bits = mode.get_character_count_bits(version);
+        if num_letters >= (1 << num_bits) {
+            panic!("{} is bigger than {}", num_letters, (1 << num_bits) - 1);
+        }
+        bits.append_bits(num_letters, num_bits);
+    }
 
-    // fn calculateBitsNeeded(
-    //     &self,
-    //     mode: Mode,
-    //     header_bits: &mut BitArray,
-    //     data_bits: &mut BitArray,
-    //     version: Version,
-    // ) -> usize {
+    /**
+     * Decides the smallest version of QR code that will contain all of the provided data.
+     *
+     * @throws WriterException if the data cannot fit in any version
+     */
+    fn recommend_version(
+        &self,
+        ec_level: &ErrorCorrectionLevel,
+        mode: &Mode,
+        header_bits: &mut BitArray,
+        data_bits: &mut BitArray,
+    ) -> Result<&Version, WriterException> {
+        // Hard part: need to know version to know how many bits length takes. But need to know how many
+        // bits it takes to know version. First we take a guess at version by assuming version will be
+        // the minimum, 1:
+        let version = self.versions.get_version_for_number(1).unwrap();
+        let provisional_bits_needed =
+            self.calculate_bits_needed(mode, header_bits, data_bits, version);
+        let provisional_version = self
+            .choose_version(provisional_bits_needed, ec_level)
+            .unwrap();
 
-    //     header_bits.get_size() + data_bits.get_size() + mode.
-    // }
+        // Use that guess to calculate the right version. I am still not sure this works in 100% of cases.
+        let bits_needed =
+            self.calculate_bits_needed(mode, header_bits, data_bits, provisional_version);
+        self.choose_version(bits_needed, ec_level)
+    }
+
+    fn calculate_bits_needed(
+        &self,
+        mode: &Mode,
+        header_bits: &mut BitArray,
+        data_bits: &mut BitArray,
+        version: &Version,
+    ) -> i32 {
+        header_bits.get_size() + data_bits.get_size() + mode.get_character_count_bits(version)
+    }
+
+    fn choose_version(
+        &self,
+        num_input_bits: i32,
+        ec_level: &ErrorCorrectionLevel,
+    ) -> Result<&Version, WriterException> {
+        for version_num in 1..40 {
+            let version = self.versions.get_version_for_number(version_num).unwrap();
+            if self.will_fit(num_input_bits, version, ec_level) {
+                return Ok(version);
+            }
+        }
+        Err(WriterException {
+            reason: String::from("Data too big"),
+        })
+    }
+
+    /**
+     * @return true if the number of input bits will fit in a code with the specified version and
+     * error correction level.
+     */
+    fn will_fit(
+        &self,
+        num_input_bits: i32,
+        version: &Version,
+        ec_level: &ErrorCorrectionLevel,
+    ) -> bool {
+        // In the following comments, we use numbers of Version 7-H.
+        // num_bytes = 196
+        let num_bytes = version.get_total_codewords();
+        // num_ec_bytes = 130
+        let ec_blocks = version.get_ec_blocks_for_level(ec_level);
+        let num_ec_bytes = ec_blocks.get_total_ec_codewords();
+        // num_data_bytes = 196 - 130 = 66
+        let num_data_bytes = num_bytes - num_ec_bytes;
+        let total_input_bytes = (num_input_bits + 7) / 8;
+
+        num_data_bytes >= total_input_bytes
+    }
+
+    /**
+     * Terminate bits as described in 8.4.8 and 8.4.9 of JISX0510:2004 (p.24).
+     */
+    fn terminate_bits(&self, num_data_bytes: i32, bits: &mut BitArray) {
+        let capacity = num_data_bytes * 8;
+        if bits.get_size() > capacity {
+            panic!(
+                "data bits cannot fit in the QR Code {} > {}",
+                bits.get_size(),
+                capacity
+            )
+        }
+        for _ in 0..4 {
+            if bits.get_size() > capacity {
+                break;
+            }
+            bits.append_bit(false)
+        }
+        // Append termination bits. See 8.4.8 of JISX0510:2004 (p.24) for details.
+        // If the last byte isn't 8-bit aligned, we'll add padding bits.
+        let num_bits_in_last_byte = bits.get_size() & 0x07;
+        if num_bits_in_last_byte > 0 {
+            for i in num_bits_in_last_byte..8 {
+                bits.append_bit(false)
+            }
+        }
+        // If we have more space, we'll fill the space with padding patterns defined in 8.4.9 (p.24).
+        let num_padding_bytes = num_data_bytes - bits.get_size_in_bytes();
+        for i in 0..num_padding_bytes {
+            let value;
+            if (i & 0x01) == 0 {
+                value = 0xEC
+            } else {
+                value = 0x11
+            }
+            bits.append_bits(value, 8)
+        }
+        if bits.get_size() != capacity {
+            panic!("Bits size does not equal capacity")
+        }
+    }
+
+    /**
+     * Interleave "bits" with corresponding error correction bytes. On success, store the result in
+     * "result". The interleave rule is complicated. See 8.6 of JISX0510:2004 (p.37) for details.
+     */
+    fn interleave_with_ec_bytes(
+        &self,
+        bits: &mut BitArray,
+        num_total_bytes: i32,
+        num_data_bytes: i32,
+        num_rs_blocks: i32,
+    ) -> Result<BitArray, WriterException> {
+        // "bits" must have "getNumDataBytes" bytes of data.
+        if bits.get_size_in_bytes() != num_data_bytes {
+            return Err(WriterException {
+                reason: String::from("Number of bits and data bytes does not match"),
+            });
+        }
+
+        // Step 1.  Divide data bytes into blocks and generate error correction bytes for them. We'll
+        // store the divided data bytes blocks and error correction bytes blocks into "blocks".
+        let mut data_bytes_offset: i32 = 0;
+        let mut max_num_data_bytes: i32 = 0;
+        let mut max_num_ec_bytes: i32 = 0;
+
+        // Since, we know the number of reedsolmon blocks, we can initialize the vector with the number.
+        let mut blocks: Vec<BlockPair> = Vec::new();
+        for i in 0..num_rs_blocks {
+            let mut num_data_bytes_in_block: [i32; 1] = [0; 1];
+            let mut num_ec_bytes_in_block: [i32; 1] = [0; 1];
+            self.get_num_data_bytes_and_num_ec_bytes_for_block_id(
+                num_total_bytes,
+                num_data_bytes,
+                num_rs_blocks,
+                i,
+                &mut num_data_bytes_in_block,
+                &mut num_ec_bytes_in_block,
+            );
+
+            let size = num_data_bytes_in_block[0];
+            let mut data_bytes: Vec<i32> = vec![0; size as usize];
+            bits.to_bytes(8 * data_bytes_offset, &mut data_bytes, 0, size);
+            let ec_bytes = self.generate_ec_bytes(&data_bytes, num_ec_bytes_in_block[0]);
+            let ec_bytes_length = ec_bytes.len() as i32;
+            blocks.push(BlockPair::new(data_bytes, ec_bytes));
+
+            max_num_data_bytes = max_num_data_bytes.max(size);
+            max_num_ec_bytes = max_num_ec_bytes.max(ec_bytes_length);
+            data_bytes_offset += num_data_bytes_in_block[0];
+        }
+
+        if num_data_bytes != data_bytes_offset {
+            return Err(WriterException {
+                reason: String::from("Data bytes does not match offset"),
+            });
+        }
+
+        let mut result = BitArray::new();
+
+        // First, place data blocks.
+        for i in 0..max_num_data_bytes {
+            for block in blocks.iter() {
+                let data_bytes = block.get_data_bytes();
+                if i < data_bytes.len() as i32 {
+                    result.append_bits(data_bytes[i as usize], 8)
+                }
+            }
+        }
+        // Then, place error correction blocks.
+        for i in 0..max_num_ec_bytes {
+            for block in blocks.iter() {
+                let ec_bytes = block.get_error_correction_bytes();
+                if i < ec_bytes.len() as i32 {
+                    result.append_bits(ec_bytes[i as usize], 8)
+                }
+            }
+        }
+
+        if num_total_bytes != result.get_size_in_bytes() {
+            // Should be same.
+            return Err(WriterException {
+                reason: String::from(format!(
+                    "Interleaving error: {} and {} differ.",
+                    num_total_bytes,
+                    result.get_size_in_bytes()
+                )),
+            });
+        }
+
+        Ok(result)
+    }
+
+    /**
+     * Get number of data bytes and number of error correction bytes for block id "blockID". Store
+     * the result in "numDataBytesInBlock", and "numECBytesInBlock". See table 12 in 8.5.1 of
+     * JISX0510:2004 (p.30)
+     */
+    fn get_num_data_bytes_and_num_ec_bytes_for_block_id(
+        &self,
+        num_total_bytes: i32,
+        num_data_bytes: i32,
+        num_rs_blocks: i32,
+        block_id: i32,
+        num_data_bytes_in_block: &mut [i32; 1],
+        num_ec_bytes_in_block: &mut [i32; 1],
+    ) {
+        if block_id >= num_rs_blocks {
+            panic!("Block ID too large")
+        }
+        // num_rs_blocks_in_group2 = 196 % 5 = 1
+        let num_rs_blocks_in_group2 = num_total_bytes % num_rs_blocks;
+        // num_rs_blocks_in_group1 = 5 - 1 = 4
+        let num_rs_blocks_in_group1 = num_rs_blocks - num_rs_blocks_in_group2;
+        // num_total_bytes_in_group1 = 196 / 5 = 39
+        let num_total_bytes_in_group1 = num_total_bytes / num_rs_blocks;
+        // num_total_bytes_in_group2 = 39 + 1 = 40
+        let num_total_bytes_in_group2 = num_total_bytes_in_group1 + 1;
+        // num_data_bytes_in_group1 = 66 / 5 = 13
+        let num_data_bytes_in_group1 = num_data_bytes / num_rs_blocks;
+        // num_data_bytes_in_group2 = 13 + 1 = 14
+        let num_data_bytes_in_group2 = num_data_bytes_in_group1 + 1;
+        // numEcBytesInGroup1 = 39 - 13 = 26
+        let num_ec_bytes_in_group1 = num_total_bytes_in_group1 - num_data_bytes_in_group1;
+        // num_ec_bytes_in_group2 = 40 - 14 = 26
+        let num_ec_bytes_in_group2 = num_total_bytes_in_group2 - num_data_bytes_in_group2;
+        // Sanity checks.
+        // 26 = 26
+        if num_ec_bytes_in_group1 != num_ec_bytes_in_group2 {
+            panic!("EC bytes mismatch")
+        }
+        // 5 = 4 + 1.
+        if num_rs_blocks != num_rs_blocks_in_group1 + num_rs_blocks_in_group2 {
+            panic!("RS blocks mismatch")
+        }
+        // 196 = (13 + 26) * 4 + (14 + 26) * 1
+        if num_total_bytes
+            != ((num_data_bytes_in_group1 + num_ec_bytes_in_group1) * num_rs_blocks_in_group1)
+                + ((num_data_bytes_in_group2 + num_ec_bytes_in_group2) * num_rs_blocks_in_group2)
+        {
+            panic!("Total bytes mismatch")
+        }
+        if block_id < num_rs_blocks_in_group1 {
+            num_data_bytes_in_block[0] = num_data_bytes_in_group1;
+            num_ec_bytes_in_block[0] = num_ec_bytes_in_group1;
+        } else {
+            num_data_bytes_in_block[0] = num_data_bytes_in_group2;
+            num_ec_bytes_in_block[0] = num_ec_bytes_in_group2;
+        }
+    }
+
+    fn generate_ec_bytes(&self, data_bytes: &Vec<i32>, num_ec_bytes_in_block: i32) -> Vec<i32> {
+        let num_data_bytes = data_bytes.len();
+        let mut to_encode: Vec<i32> = vec![0; num_data_bytes + num_ec_bytes_in_block as usize];
+        for i in 0..num_data_bytes {
+            to_encode[i] = data_bytes[i] & 0xFF;
+        }
+        // todo!();
+        // new ReedSolomonEncoder(GenericGF.QR_CODE_FIELD_256).encode(toEncode, numEcBytesInBlock);
+
+        let mut ec_bytes: Vec<i32> = vec![0; num_ec_bytes_in_block as usize];
+        for i in 0..num_ec_bytes_in_block {
+            ec_bytes[i as usize] = to_encode[num_data_bytes + i as usize]
+        }
+        ec_bytes
+    }
+
+    fn choose_mask_pattern(
+        &self,
+        bits: &mut BitArray,
+        ec_level: &ErrorCorrectionLevel,
+        version: &Version,
+        matrix: &mut ByteMatrix,
+    ) -> Result<i32, WriterException> {
+        let min_penalty = i32::MAX; // Lower penalty is better.
+        let best_mask_pattern = -1;
+        // We try all mask patterns to choose the best one.
+        for maskPattern in 0..QRCode::NUM_MASK_PATTERNS {}
+
+        todo!()
+    }
 }
