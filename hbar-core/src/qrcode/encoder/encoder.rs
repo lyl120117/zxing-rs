@@ -1,7 +1,7 @@
 use crate::common::BitArray;
 use crate::common::Charset;
 use crate::encode_hint_type::EncodeHintType;
-use crate::qrcode::decoder::{ErrorCorrectionLevel, Mode, ModeType, Version};
+use crate::qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, Versions};
 use crate::qrcode::encoder::QRCode;
 use crate::WriterException;
 
@@ -11,6 +11,7 @@ use std::str::FromStr;
 pub struct Encoder {
     alphanumeric_table: [i32; 96],
     default_byte_mode_encoding: Charset,
+    versions: Versions,
 }
 
 impl Encoder {
@@ -25,6 +26,7 @@ impl Encoder {
                 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, -1, -1, -1, -1, -1, // 0x50-0x5f
             ],
             default_byte_mode_encoding: Charset::ISO8859_1,
+            versions: Versions::new(),
         }
     }
 
@@ -61,7 +63,7 @@ impl Encoder {
         let mut header_bits = BitArray::new();
 
         // Append ECI segment if applicable
-        if mode.get_type() == ModeType::Byte && has_encoding_hint {
+        if mode == Mode::get_byte() && has_encoding_hint {
             todo!("Append ECI segment if applicable")
         }
 
@@ -94,10 +96,8 @@ impl Encoder {
         content: &String,
         encoding: &Charset,
     ) -> Result<Mode, WriterException> {
-        let mut mode = Mode::new();
         if self.is_only_double_byte_kanji(content) {
-            mode.set_bits(mode.kanji, ModeType::Kanji);
-            return Ok(mode);
+            return Ok(Mode::get_kanji());
         }
         let mut has_numeric = false;
         let mut has_alphanumeric = false;
@@ -108,21 +108,17 @@ impl Encoder {
             } else if self._get_alphanumeric_code(c as usize) != -1 {
                 has_alphanumeric = true;
             } else {
-                mode.set_bits(mode.byte, ModeType::Byte);
-                return Ok(mode);
+                return Ok(Mode::get_byte());
             }
         }
         if has_alphanumeric {
-            mode.set_bits(mode.alphanumeric, ModeType::Alphanumeric);
-            return Ok(mode);
+            return Ok(Mode::get_alphanumeric());
         }
         if has_numeric {
-            mode.set_bits(mode.numeric, ModeType::Numeric);
-            return Ok(mode);
+            return Ok(Mode::get_numeric());
         }
 
-        mode.set_bits(mode.byte, ModeType::Byte);
-        Ok(mode)
+        Ok(Mode::get_byte())
     }
 
     pub fn is_only_double_byte_kanji(&self, content: &String) -> bool {
@@ -149,15 +145,15 @@ impl Encoder {
     }
 
     fn append_mode_info(&self, mode: &Mode, bits: &mut BitArray) {
-        bits.append_bits(mode.get_bits(), 4);
+        bits.append_bits(mode.get_bits() as u32, 4);
     }
 
     fn append_bytes(&self, content: &String, mode: &Mode, bits: &mut BitArray, encoding: &Charset) {
-        match mode.get_type() {
-            ModeType::Numeric => self.append_numeric_bytes(content, bits),
-            ModeType::Alphanumeric => self.append_alphanumeric_bytes(content, bits),
-            ModeType::Byte => self.append_8bit_bytes(content, bits, encoding),
-            ModeType::Kanji => self.append_kanji_bytes(content, bits),
+        match mode {
+            Mode::Numeric(_, _) => self.append_numeric_bytes(content, bits),
+            Mode::Alphanumeric(_, _) => self.append_alphanumeric_bytes(content, bits),
+            Mode::Byte(_, _) => self.append_8bit_bytes(content, bits, encoding),
+            Mode::Kanji(_, _) => self.append_kanji_bytes(content, bits),
             other => {
                 panic!("Invalid mode: {:?}", other);
             }
@@ -201,4 +197,32 @@ impl Encoder {
     fn append_kanji_bytes(&self, content: &String, bits: &mut BitArray) {
         todo!("append_kanji_bytes")
     }
+
+    // /**
+    //  * Decides the smallest version of QR code that will contain all of the provided data.
+    //  *
+    //  * @throws WriterException if the data cannot fit in any version
+    //  */
+    // fn recommendVersion(
+    //     &self,
+    //     ec_level: ErrorCorrectionLevel,
+    //     mode: &Mode,
+    //     header_bits: &mut BitArray,
+    //     data_bits: &mut BitArray,
+    // ) -> Result<Version, WriterException> {
+    //     // Hard part: need to know version to know how many bits length takes. But need to know how many
+    //     // bits it takes to know version. First we take a guess at version by assuming version will be
+    //     // the minimum, 1:
+    // }
+
+    // fn calculateBitsNeeded(
+    //     &self,
+    //     mode: Mode,
+    //     header_bits: &mut BitArray,
+    //     data_bits: &mut BitArray,
+    //     version: Version,
+    // ) -> usize {
+
+    //     header_bits.get_size() + data_bits.get_size() + mode.
+    // }
 }

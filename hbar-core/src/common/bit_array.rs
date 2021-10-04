@@ -1,3 +1,4 @@
+#[derive(Debug, Clone)]
 pub struct BitArray {
     bits: Vec<u32>,
     size: usize,
@@ -47,5 +48,9 @@ impl BitArray {
                 self.bits.push(0);
             }
         }
+    }
+
+    pub fn get_size(&self) -> usize {
+        self.size
     }
 }
