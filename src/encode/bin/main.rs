@@ -13,6 +13,12 @@ pub fn encode() {
     let formater = MultiFormatWriter {
         encoders: get_encoders(),
     };
+    let out_file_string = format!(
+        "{}.{}",
+        &config.output_file_base,
+        &config.image_format.to_lowercase()
+    );
+
     let mut hints: HashMap<EncodeHintType, &String> = HashMap::new();
     if !config.error_correction_level.is_empty()
         && config.error_correction_level != String::from("None")
@@ -23,14 +29,16 @@ pub fn encode() {
         );
     }
     println!("{:#?}", config);
-    let result = formater.encode_hints(
-        &config.contents,
-        &config.barcode_format,
-        config.width,
-        config.height,
-        hints,
-    );
-    println!("{:#?}", result.unwrap());
+    let result = formater
+        .encode_hints(
+            &config.contents,
+            &config.barcode_format,
+            config.width,
+            config.height,
+            hints,
+        )
+        .unwrap();
+    formater.write_to_path(&result, &out_file_string);
 }
 
 fn main() {

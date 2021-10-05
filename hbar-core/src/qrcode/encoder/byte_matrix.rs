@@ -5,13 +5,37 @@ pub struct ByteMatrix {
     height: i32,
 }
 
+use std::fmt;
+impl fmt::Display for ByteMatrix {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for y in 0..self.height {
+            let bytes_y = &self.bytes[y as usize];
+            for x in 0..self.width {
+                match bytes_y[x as usize] {
+                    0 => {
+                        write!(f, " 0");
+                    }
+                    1 => {
+                        write!(f, " 1");
+                    }
+                    _ => {
+                        write!(f, "  ");
+                    }
+                }
+            }
+            write!(f, "\n");
+        }
+        write!(f, " {}x{}", self.width, self.height)
+    }
+}
+
 impl ByteMatrix {
     pub fn new(width: i32, height: i32) -> ByteMatrix {
         if width < 0 || height < 0 {
             panic!()
         }
         ByteMatrix {
-            bytes: vec![vec![0; width as usize]; height as usize],
+            bytes: vec![vec![-1; width as usize]; height as usize],
             width: width,
             height: height,
         }

@@ -18,8 +18,8 @@ impl Writer for DataMatrixWriter {
         &self,
         contents: &String,
         format: &BarcodeFormat,
-        width: u32,
-        height: u32,
+        width: i32,
+        height: i32,
     ) -> Result<BitMatrix, WriterException> {
         let hints: HashMap<EncodeHintType, &String> = HashMap::new();
         self.encode_hints(contents, format, width, height, hints)
@@ -29,10 +29,10 @@ impl Writer for DataMatrixWriter {
         &self,
         contents: &String,
         format: &BarcodeFormat,
-        width: u32,
-        height: u32,
+        width: i32,
+        height: i32,
         hints: HashMap<EncodeHintType, &String>,
     ) -> Result<BitMatrix, WriterException> {
-        Ok(BitMatrix {})
+        Ok(BitMatrix::new2(0, 0))
     }
 }

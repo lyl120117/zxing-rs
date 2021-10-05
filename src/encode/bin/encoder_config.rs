@@ -17,10 +17,10 @@ pub struct EncoderConfig {
     pub output_file_base: String,
     /// Image width
     #[structopt(short = "w", default_value = "300")]
-    pub width: u32,
+    pub width: i32,
     /// Image height
     #[structopt(short = "h", default_value = "300")]
-    pub height: u32,
+    pub height: i32,
     /// Error correction level for the encoding
     #[structopt(short = "e", default_value = "None")]
     pub error_correction_level: String,

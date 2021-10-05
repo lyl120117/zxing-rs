@@ -82,6 +82,9 @@ impl Encoder {
         let mut data_bits = BitArray::new();
         self.append_bytes(content, &mode, &mut data_bits, &encoding);
 
+        println!("header_bits: {}", header_bits);
+        println!("data_bits: {}", data_bits);
+
         let version;
         if hints.contains_key(&EncodeHintType::QRVersion) {
             todo!("QRVersion")
@@ -94,6 +97,7 @@ impl Encoder {
 
         let mut header_and_data_bits = BitArray::new();
         header_and_data_bits.append_bit_array(&mut header_bits);
+        println!("header_bits header_and_data_bits: {}", header_and_data_bits);
         // Find "length" of main segment and write it
         let num_letters;
         if mode == Mode::get_byte() {
@@ -102,15 +106,23 @@ impl Encoder {
             num_letters = content.len() as i32
         }
         self.append_length_info(num_letters, version, &mode, &mut header_and_data_bits);
+        println!(
+            "append_length_info header_and_data_bits: {}",
+            header_and_data_bits
+        );
         // Put data together into the overall payload
         header_and_data_bits.append_bit_array(&mut data_bits);
+        println!("data_bits header_and_data_bits: {}", header_and_data_bits);
 
         let ec_blocks = version.get_ec_blocks_for_level(&ec_level);
         let num_data_bytes = version.get_total_codewords() - ec_blocks.get_total_ec_codewords();
         // Terminate the bits properly.
         self.terminate_bits(num_data_bytes, &mut header_and_data_bits);
 
-        println!("header_and_data_bits: {:?}", header_and_data_bits);
+        println!(
+            "terminate_bits header_and_data_bits: {}",
+            header_and_data_bits
+        );
 
         // Interleave data bits with error correction code.
         let mut final_bits = self
@@ -121,7 +133,7 @@ impl Encoder {
                 ec_blocks.get_num_blocks(),
             )
             .unwrap();
-        println!("final_bits: {:?}", final_bits);
+        println!("final_bits: {}", final_bits);
 
         //  Choose the mask pattern and set to "qrCode".
         let dimension = version.get_dimension_for_version();
@@ -151,6 +163,7 @@ impl Encoder {
             mask_pattern,
             &mut matrix,
         );
+        println!("matrix: {}", matrix);
         let qr_code = QRCode::new(mode, ec_level, version.clone(), mask_pattern, matrix);
 
         Ok(qr_code)
@@ -374,14 +387,16 @@ impl Encoder {
             }
             bits.append_bit(false)
         }
+        println!("terminate_bits11 bits: {}", bits);
         // Append termination bits. See 8.4.8 of JISX0510:2004 (p.24) for details.
         // If the last byte isn't 8-bit aligned, we'll add padding bits.
         let num_bits_in_last_byte = bits.get_size() & 0x07;
         if num_bits_in_last_byte > 0 {
-            for i in num_bits_in_last_byte..8 {
+            for _ in num_bits_in_last_byte..8 {
                 bits.append_bit(false)
             }
         }
+        println!("terminate_bits22 bits: {}", bits);
         // If we have more space, we'll fill the space with padding patterns defined in 8.4.9 (p.24).
         let num_padding_bytes = num_data_bytes - bits.get_size_in_bytes();
         for i in 0..num_padding_bytes {

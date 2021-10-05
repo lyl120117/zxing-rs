@@ -1,7 +1,24 @@
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct BitArray {
     bits: Vec<i32>,
     size: i32,
+}
+
+use std::fmt;
+impl fmt::Display for BitArray {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for i in 0..self.size {
+            if (i & 0x07) == 0 {
+                write!(f, " ");
+            }
+            if self.get(i) {
+                write!(f, "X");
+            } else {
+                write!(f, ".");
+            }
+        }
+        write!(f, " size: {}", self.size)
+    }
 }
 
 impl BitArray {
@@ -28,8 +45,7 @@ impl BitArray {
         self.ensure_capacity(next_size + num_bits);
         for num_bits_left in (0..num_bits).rev() {
             if (value & (1 << num_bits_left)) != 0 {
-                let index = num_bits_left / 32;
-                self.bits[index as usize] |= 1 << (next_size & 0x1F);
+                self.bits[next_size as usize / 32] |= 1 << (next_size & 0x1F);
             }
             next_size += 1;
         }

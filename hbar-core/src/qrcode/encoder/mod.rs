@@ -7,6 +7,7 @@ pub mod qrcode;
 
 pub use block_pair::BlockPair;
 pub use byte_matrix::ByteMatrix;
+pub use encoder::Encoder;
 pub use encoding::Encoding;
 pub use mask_util::MaskUtil;
 pub use matrix_util::MatrixUtil;

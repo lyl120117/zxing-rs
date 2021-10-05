@@ -280,7 +280,7 @@ impl MatrixUtil {
 
     fn embed_horizontal_separation_pattern(x_start: i32, y_start: i32, matrix: &mut ByteMatrix) {
         for x in 0..8 {
-            if MatrixUtil::is_empty(matrix.get(x_start + x, y_start)) {
+            if !MatrixUtil::is_empty(matrix.get(x_start + x, y_start)) {
                 panic!()
             }
             matrix.set(x_start + x, y_start, 0)
@@ -289,7 +289,7 @@ impl MatrixUtil {
 
     fn embed_vertical_separation_pattern(x_start: i32, y_start: i32, matrix: &mut ByteMatrix) {
         for y in 0..7 {
-            if MatrixUtil::is_empty(matrix.get(x_start, y_start + y)) {
+            if !MatrixUtil::is_empty(matrix.get(x_start, y_start + y)) {
                 panic!()
             }
             matrix.set(x_start, y_start + y, 0)

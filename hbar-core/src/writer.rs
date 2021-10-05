@@ -19,15 +19,15 @@ pub trait Writer {
         &self,
         contents: &String,
         format: &BarcodeFormat,
-        width: u32,
-        height: u32,
+        width: i32,
+        height: i32,
     ) -> Result<BitMatrix, WriterException>;
     fn encode_hints(
         &self,
         contents: &String,
         format: &BarcodeFormat,
-        width: u32,
-        height: u32,
+        width: i32,
+        height: i32,
         hints: HashMap<EncodeHintType, &String>,
     ) -> Result<BitMatrix, WriterException>;
 }
