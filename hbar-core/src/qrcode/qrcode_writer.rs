@@ -99,6 +99,7 @@ impl QRCodeWriter {
         quiet_zone: u32,
     ) -> Result<BitMatrix, WriterException> {
         let output = BitMatrix::new();
+        println!("==============================render_result==================================");
         Ok(output)
     }
 }

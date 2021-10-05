@@ -5,7 +5,7 @@ use crate::WriterException;
  * This includes the number of data codewords, and the number of times a block with these
  * parameters is used consecutively in the QR code version's format.</p>
  */
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ECB {
     count: i32,
     data_codewords: i32,
@@ -33,7 +33,7 @@ impl ECB {
 * will be the same across all blocks within one version.</p>
 */
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ECBlocks {
     ec_codewords_per_block: i32,
     ec_blocks: Vec<ECB>,
@@ -68,7 +68,7 @@ impl ECBlocks {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Version {
     version_decode_info: Vec<i32>,
     version_number: i32,

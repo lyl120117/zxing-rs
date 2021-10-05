@@ -1,23 +1,23 @@
 use crate::qrcode::decoder::{ErrorCorrectionLevel, Mode, Version};
 use crate::qrcode::encoder::ByteMatrix;
 
-pub struct QRCode<'a> {
-    mode: &'a Mode,
-    ec_level: &'a ErrorCorrectionLevel,
-    version: &'a Version,
+pub struct QRCode {
+    mode: Mode,
+    ec_level: ErrorCorrectionLevel,
+    version: Version,
     mask_pattern: i32,
-    matrix: &'a ByteMatrix,
+    matrix: ByteMatrix,
 }
 
-impl<'a> QRCode<'a> {
+impl QRCode {
     pub const NUM_MASK_PATTERNS: i32 = 8;
     pub fn new(
-        mode: &'a Mode,
-        ec_level: &'a ErrorCorrectionLevel,
-        version: &'a Version,
+        mode: Mode,
+        ec_level: ErrorCorrectionLevel,
+        version: Version,
         mask_pattern: i32,
-        matrix: &'a ByteMatrix,
-    ) -> QRCode<'a> {
+        matrix: ByteMatrix,
+    ) -> QRCode {
         let s = QRCode::NUM_MASK_PATTERNS;
         QRCode {
             mode,

@@ -2,7 +2,7 @@ use crate::common::BitArray;
 use crate::common::Charset;
 use crate::encode_hint_type::EncodeHintType;
 use crate::qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, Versions};
-use crate::qrcode::encoder::{BlockPair, ByteMatrix, MatrixUtil, QRCode};
+use crate::qrcode::encoder::{BlockPair, ByteMatrix, MaskUtil, MatrixUtil, QRCode};
 use crate::WriterException;
 
 use std::collections::HashMap;
@@ -144,11 +144,16 @@ impl Encoder {
         }
 
         // Build the matrix and set it to "qrCode".
-        // MatrixUtil::buildMatrix(finalBits, ecLevel, version, maskPattern, matrix);
-        let qr_code = QRCode::new(&mode, &ec_level, &version, mask_pattern, &matrix);
+        MatrixUtil::build_matrix(
+            &mut final_bits,
+            &ec_level,
+            version,
+            mask_pattern,
+            &mut matrix,
+        );
+        let qr_code = QRCode::new(mode, ec_level, version.clone(), mask_pattern, matrix);
 
-        todo!();
-        // Ok(QRCode::new())
+        Ok(qr_code)
     }
 
     pub fn choose_mode(
@@ -565,11 +570,26 @@ impl Encoder {
         version: &Version,
         matrix: &mut ByteMatrix,
     ) -> Result<i32, WriterException> {
-        let min_penalty = i32::MAX; // Lower penalty is better.
-        let best_mask_pattern = -1;
+        let mut min_penalty = i32::MAX; // Lower penalty is better.
+        let mut best_mask_pattern = -1;
         // We try all mask patterns to choose the best one.
-        for maskPattern in 0..QRCode::NUM_MASK_PATTERNS {}
+        for mask_pattern in 0..QRCode::NUM_MASK_PATTERNS {
+            MatrixUtil::build_matrix(bits, ec_level, version, mask_pattern, matrix);
+            let penalty = self.calculate_mask_penalty(matrix);
+            if penalty < min_penalty {
+                min_penalty = penalty;
+                best_mask_pattern = mask_pattern;
+            }
+        }
+        Ok(best_mask_pattern)
+    }
 
-        todo!()
+    // The mask penalty calculation is complicated.  See Table 21 of JISX0510:2004 (p.45) for details.
+    // Basically it applies four rules and summate all penalties.
+    fn calculate_mask_penalty(&self, matrix: &mut ByteMatrix) -> i32 {
+        MaskUtil::apply_mask_penalty_rule1(matrix)
+            + MaskUtil::apply_mask_penalty_rule2(matrix)
+            + MaskUtil::apply_mask_penalty_rule3(matrix)
+            + MaskUtil::apply_mask_penalty_rule4(matrix)
     }
 }

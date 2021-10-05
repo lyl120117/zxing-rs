@@ -1,6 +1,6 @@
 use crate::common::BitArray;
 use crate::qrcode::decoder::{ErrorCorrectionLevel, Version};
-use crate::qrcode::encoder::ByteMatrix;
+use crate::qrcode::encoder::{ByteMatrix, MaskUtil, QRCode};
 
 pub struct MatrixUtil;
 
@@ -97,21 +97,26 @@ impl MatrixUtil {
     // JAVAPORT: We shouldn't need to do this at all. The code should be rewritten to begin encoding
     // with the ByteMatrix initialized all to zero.
     fn clear_matrix(matrix: &mut ByteMatrix) {
-        matrix.clear(0);
+        matrix.clear(-1);
     }
 
     // Build 2D matrix of QR Code from "dataBits" with "ecLevel", "version" and "getMaskPattern". On
     // success, store the result in "matrix" and return true.
     pub fn build_matrix(
-        data_bits: &BitArray,
+        data_bits: &mut BitArray,
         ec_level: &ErrorCorrectionLevel,
         version: &Version,
-        mask_pattern: usize,
+        mask_pattern: i32,
         matrix: &mut ByteMatrix,
     ) {
         MatrixUtil::clear_matrix(matrix);
         MatrixUtil::embed_basic_patterns(version, matrix);
         // Type information appear with any version.
+        MatrixUtil::embed_type_info(ec_level, mask_pattern, matrix);
+        // Version info appear if version >= 7.
+        MatrixUtil::maybe_embed_version_info(version, matrix);
+        // Data should be embedded at end.
+        MatrixUtil::embed_data_bits(data_bits, mask_pattern, matrix);
     }
 
     fn is_empty(value: i32) -> bool {
@@ -134,6 +139,119 @@ impl MatrixUtil {
         MatrixUtil::maybe_embed_position_adjustment_patterns(version, matrix);
         // Timing patterns should be embedded after position adj. patterns.
         MatrixUtil::embed_timing_patterns(matrix);
+    }
+
+    // Embed type information. On success, modify the matrix.
+    fn embed_type_info(
+        ec_level: &ErrorCorrectionLevel,
+        mask_pattern: i32,
+        matrix: &mut ByteMatrix,
+    ) {
+        let mut type_info_bits = BitArray::new();
+        MatrixUtil::make_type_info_bits(ec_level, mask_pattern, &mut type_info_bits);
+
+        for i in 0..type_info_bits.get_size() {
+            // Place bits in LSB to MSB order.  LSB (least significant bit) is the last value in
+            // "typeInfoBits".
+            let bit = type_info_bits.get(type_info_bits.get_size() - 1 - i);
+
+            // Type info bits at the left top corner. See 8.9 of JISX0510:2004 (p.46).
+            let coordinates = MatrixUtil::TYPE_INFO_COORDINATES[i as usize];
+            let x1 = coordinates[0];
+            let y1 = coordinates[1];
+            matrix.set(x1, y1, bit as i32);
+
+            let x2;
+            let y2;
+            if i < 8 {
+                // Right top corner.
+                x2 = matrix.get_width() - i - 1;
+                y2 = 8;
+            } else {
+                // Left bottom corner.
+                x2 = 8;
+                y2 = matrix.get_height() - 7 + (i - 8);
+            }
+            matrix.set(x2, y2, bit as i32)
+        }
+    }
+
+    // Embed version information if need be. On success, modify the matrix and return true.
+    // See 8.10 of JISX0510:2004 (p.47) for how to embed version information.
+    fn maybe_embed_version_info(version: &Version, matrix: &mut ByteMatrix) {
+        if (version.get_version_number() < 7) {
+            // Version info is necessary if version >= 7.
+            return; // Don't need version info.
+        }
+
+        let mut version_info_bits = BitArray::new();
+        MatrixUtil::make_version_info_bits(version, &mut version_info_bits);
+
+        let mut bit_index = 6 * 3 - 1; // It will decrease from 17 to 0.
+        for i in 0..6 {
+            for j in 0..3 {
+                // Place bits in LSB (least significant bit) to MSB order.
+                let bit = version_info_bits.get(bit_index);
+                bit_index -= 1;
+                // Left bottom corner.
+                matrix.set(i, matrix.get_height() - 11 + j, bit as i32);
+                // Right bottom corner.
+                matrix.set(matrix.get_height() - 11 + j, i, bit as i32);
+            }
+        }
+    }
+
+    // Embed "dataBits" using "getMaskPattern". On success, modify the matrix and return true.
+    // For debugging purposes, it skips masking process if "getMaskPattern" is -1.
+    // See 8.7 of JISX0510:2004 (p.38) for how to embed data bits.
+    fn embed_data_bits(data_bits: &mut BitArray, mask_pattern: i32, matrix: &mut ByteMatrix) {
+        let mut bit_index = 0;
+        let mut direction = -1;
+        // Start from the right bottom cell.
+        let mut x = matrix.get_width() - 1;
+        let mut y = matrix.get_height() - 1;
+        while x > 0 {
+            // Skip the vertical timing pattern.
+            if x == 6 {
+                x -= 1;
+            }
+            while y >= 0 && y < matrix.get_height() {
+                for i in 0..2 {
+                    let xx = x - i;
+                    // Skip the cell if it's not empty.
+                    if !MatrixUtil::is_empty(matrix.get(xx, y)) {
+                        continue;
+                    }
+                    let mut bit;
+                    if (bit_index < data_bits.get_size()) {
+                        bit = data_bits.get(bit_index);
+                        bit_index += 1;
+                    } else {
+                        // Padding bit. If there is no bit left, we'll fill the left cells with 0, as described
+                        // in 8.4.9 of JISX0510:2004 (p. 24).
+                        bit = false;
+                    }
+
+                    // Skip masking if mask_pattern is -1.
+                    if mask_pattern != -1 && MaskUtil::get_data_mask_bit(mask_pattern, xx, y) {
+                        bit = !bit;
+                    }
+                    matrix.set(xx, y, bit as i32);
+                }
+                y += direction;
+            }
+            direction = -direction; // Reverse the direction.
+            y += direction;
+            x -= 2; // Move to the left.
+        }
+        // All bits should be consumed.
+        if bit_index != data_bits.get_size() {
+            panic!(
+                "Not all bits consumed: {}/{}",
+                bit_index,
+                data_bits.get_size()
+            );
+        }
     }
 
     fn embed_timing_patterns(matrix: &mut ByteMatrix) {
@@ -248,6 +366,100 @@ impl MatrixUtil {
             matrix.get_height() - vsp_size,
             matrix,
         );
+    }
+
+    // Return the position of the most significant bit set (to one) in the "value". The most
+    // significant bit is position 32. If there is no bit set, return 0. Examples:
+    // - find_msb_set(0) => 0
+    // - find_msb_set(1) => 1
+    // - find_msb_set(255) => 8
+    fn find_msb_set(value: i32) -> i32 {
+        32 - i32::leading_zeros(value) as i32
+    }
+
+    // Calculate BCH (Bose-Chaudhuri-Hocquenghem) code for "value" using polynomial "poly". The BCH
+    // code is used for encoding type information and version information.
+    // Example: Calculation of version information of 7.
+    // f(x) is created from 7.
+    //   - 7 = 000111 in 6 bits
+    //   - f(x) = x^2 + x^1 + x^0
+    // g(x) is given by the standard (p. 67)
+    //   - g(x) = x^12 + x^11 + x^10 + x^9 + x^8 + x^5 + x^2 + 1
+    // Multiply f(x) by x^(18 - 6)
+    //   - f'(x) = f(x) * x^(18 - 6)
+    //   - f'(x) = x^14 + x^13 + x^12
+    // Calculate the remainder of f'(x) / g(x)
+    //         x^2
+    //         __________________________________________________
+    //   g(x) )x^14 + x^13 + x^12
+    //         x^14 + x^13 + x^12 + x^11 + x^10 + x^7 + x^4 + x^2
+    //         --------------------------------------------------
+    //                              x^11 + x^10 + x^7 + x^4 + x^2
+    //
+    // The remainder is x^11 + x^10 + x^7 + x^4 + x^2
+    // Encode it in binary: 110010010100
+    // The return value is 0xc94 (1100 1001 0100)
+    //
+    // Since all coefficients in the polynomials are 1 or 0, we can do the calculation by bit
+    // operations. We don't care if coefficients are positive or negative.
+    fn calculate_bch_code(value: i32, poly: i32) -> i32 {
+        if poly == 0 {
+            panic!("0 polynomial")
+        }
+        let mut value = value;
+        // If poly is "1 1111 0010 0101" (version info poly), msbSetInPoly is 13. We'll subtract 1
+        // from 13 to make it 12.
+        let msb_set_in_poly = MatrixUtil::find_msb_set(poly);
+        // Do the division business using exclusive-or operations.
+        while MatrixUtil::find_msb_set(value) >= msb_set_in_poly {
+            value ^= poly << (MatrixUtil::find_msb_set(value) - msb_set_in_poly);
+        }
+
+        // Now the "value" is the remainder (i.e. the BCH code)
+        value
+    }
+
+    // Make bit vector of type information. On success, store the result in "bits" and return true.
+    // Encode error correction level and mask pattern. See 8.9 of
+    // JISX0510:2004 (p.45) for details.
+    fn make_type_info_bits(
+        ec_level: &ErrorCorrectionLevel,
+        mask_pattern: i32,
+        bits: &mut BitArray,
+    ) {
+        if !QRCode::is_valid_mask_pattern(mask_pattern) {
+            panic!("Invalid mask pattern")
+        }
+        let type_info = (ec_level.get_bits() << 3) | mask_pattern;
+        bits.append_bits(type_info, 5);
+
+        let bch_code = MatrixUtil::calculate_bch_code(type_info, MatrixUtil::TYPE_INFO_POLY);
+        bits.append_bits(bch_code, 10);
+
+        let mut mask_bits = BitArray::new();
+        mask_bits.append_bits(MatrixUtil::TYPE_INFO_MASK_PATTERN, 15);
+        bits.xor(&mask_bits);
+
+        if bits.get_size() != 15 {
+            // Just in case.
+            panic!("should not happen but we got: {}", bits.get_size());
+        }
+    }
+
+    // Make bit vector of version information. On success, store the result in "bits" and return true.
+    // See 8.10 of JISX0510:2004 (p.45) for details.
+    fn make_version_info_bits(version: &Version, bits: &mut BitArray) {
+        bits.append_bits(version.get_version_number(), 6);
+        let bch_code = MatrixUtil::calculate_bch_code(
+            version.get_version_number(),
+            MatrixUtil::VERSION_INFO_POLY,
+        );
+        bits.append_bits(bch_code, 12);
+
+        if (bits.get_size() != 18) {
+            // Just in case.
+            panic!("should not happen but we got: {}", bits.get_size());
+        }
     }
 
     // Embed position adjustment patterns if need be.

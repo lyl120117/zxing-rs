@@ -32,4 +32,13 @@ impl ErrorCorrectionLevel {
         }
         return false;
     }
+
+    pub fn get_bits(&self) -> i32 {
+        match self {
+            ErrorCorrectionLevel::L => 0x01,
+            ErrorCorrectionLevel::M => 0x00,
+            ErrorCorrectionLevel::Q => 0x03,
+            ErrorCorrectionLevel::H => 0x02,
+        }
+    }
 }

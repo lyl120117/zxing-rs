@@ -1,6 +1,6 @@
 #[derive(Debug, Clone)]
 pub struct BitArray {
-    bits: Vec<u32>,
+    bits: Vec<i32>,
     size: i32,
 }
 
@@ -96,6 +96,17 @@ impl BitArray {
                 bit_offset += 1;
             }
             array[(offset + i) as usize] = the_byte;
+        }
+    }
+
+    pub fn xor(&mut self, other: &BitArray) {
+        if self.size != other.get_size() {
+            panic!("Sizes don't match")
+        }
+        for i in 0..self.bits.len() {
+            // The last int could be incomplete (i.e. not have 32 bits in
+            // it) but there is no problem since 0 XOR 0 == 0.
+            self.bits[i] ^= other.bits[i];
         }
     }
 }
