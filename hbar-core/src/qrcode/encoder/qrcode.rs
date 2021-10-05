@@ -18,7 +18,6 @@ impl QRCode {
         mask_pattern: i32,
         matrix: ByteMatrix,
     ) -> QRCode {
-        let s = QRCode::NUM_MASK_PATTERNS;
         QRCode {
             mode,
             ec_level,

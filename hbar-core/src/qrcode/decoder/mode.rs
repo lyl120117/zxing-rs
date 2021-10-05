@@ -50,51 +50,43 @@ impl Mode {
 
     pub fn get_bits(&self) -> i32 {
         match self {
-            Mode::Terminator(character_count_bits_for_versions, bits) => *bits,
-            Mode::Numeric(character_count_bits_for_versions, bits) => *bits,
-            Mode::Alphanumeric(character_count_bits_for_versions, bits) => *bits,
-            Mode::StructuredAppend(character_count_bits_for_versions, bits) => *bits,
-            Mode::Byte(character_count_bits_for_versions, bits) => *bits,
-            Mode::ECI(character_count_bits_for_versions, bits) => *bits,
-            Mode::Kanji(character_count_bits_for_versions, bits) => *bits,
-            Mode::Fnc1FirstPosition(character_count_bits_for_versions, bits) => *bits,
-            Mode::Fnc1SecondPosition(character_count_bits_for_versions, bits) => *bits,
-            Mode::Hanzi(character_count_bits_for_versions, bits) => *bits,
+            Mode::Terminator(_, bits) => *bits,
+            Mode::Numeric(_, bits) => *bits,
+            Mode::Alphanumeric(_, bits) => *bits,
+            Mode::StructuredAppend(_, bits) => *bits,
+            Mode::Byte(_, bits) => *bits,
+            Mode::ECI(_, bits) => *bits,
+            Mode::Kanji(_, bits) => *bits,
+            Mode::Fnc1FirstPosition(_, bits) => *bits,
+            Mode::Fnc1SecondPosition(_, bits) => *bits,
+            Mode::Hanzi(_, bits) => *bits,
         }
     }
 
     fn character_count_bits_for_versions(&self) -> [i32; 3] {
         match self {
-            Mode::Terminator(character_count_bits_for_versions, bits) => {
+            Mode::Terminator(character_count_bits_for_versions, _) => {
                 *character_count_bits_for_versions
             }
-            Mode::Numeric(character_count_bits_for_versions, bits) => {
+            Mode::Numeric(character_count_bits_for_versions, _) => {
                 *character_count_bits_for_versions
             }
-            Mode::Alphanumeric(character_count_bits_for_versions, bits) => {
+            Mode::Alphanumeric(character_count_bits_for_versions, _) => {
                 *character_count_bits_for_versions
             }
-            Mode::StructuredAppend(character_count_bits_for_versions, bits) => {
+            Mode::StructuredAppend(character_count_bits_for_versions, _) => {
                 *character_count_bits_for_versions
             }
-            Mode::Byte(character_count_bits_for_versions, bits) => {
+            Mode::Byte(character_count_bits_for_versions, _) => *character_count_bits_for_versions,
+            Mode::ECI(character_count_bits_for_versions, _) => *character_count_bits_for_versions,
+            Mode::Kanji(character_count_bits_for_versions, _) => *character_count_bits_for_versions,
+            Mode::Fnc1FirstPosition(character_count_bits_for_versions, _) => {
                 *character_count_bits_for_versions
             }
-            Mode::ECI(character_count_bits_for_versions, bits) => {
+            Mode::Fnc1SecondPosition(character_count_bits_for_versions, _) => {
                 *character_count_bits_for_versions
             }
-            Mode::Kanji(character_count_bits_for_versions, bits) => {
-                *character_count_bits_for_versions
-            }
-            Mode::Fnc1FirstPosition(character_count_bits_for_versions, bits) => {
-                *character_count_bits_for_versions
-            }
-            Mode::Fnc1SecondPosition(character_count_bits_for_versions, bits) => {
-                *character_count_bits_for_versions
-            }
-            Mode::Hanzi(character_count_bits_for_versions, bits) => {
-                *character_count_bits_for_versions
-            }
+            Mode::Hanzi(character_count_bits_for_versions, _) => *character_count_bits_for_versions,
         }
     }
 

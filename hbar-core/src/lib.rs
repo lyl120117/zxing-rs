@@ -9,7 +9,7 @@ pub mod writer_exception;
 
 pub use crate::barcode_format::BarcodeFormat;
 pub use crate::encode_hint_type::EncodeHintType;
-pub use crate::multi_format_writer::{get_encoders, MultiFormatWriter};
+pub use crate::multi_format_writer::MultiFormatWriter;
 pub use crate::writer_exception::WriterException;
 
 #[cfg(test)]

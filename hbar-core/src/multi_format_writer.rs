@@ -10,19 +10,24 @@ use std::collections::HashMap;
 
 use image;
 
-pub fn get_encoders() -> HashMap<BarcodeFormat, Box<dyn Writer>> {
-    let mut maps: HashMap<BarcodeFormat, Box<dyn Writer>> = HashMap::new();
-
-    maps.insert(BarcodeFormat::QRCode, Box::new(QRCodeWriter::new()));
-    maps.insert(BarcodeFormat::DataMatrix, Box::new(DataMatrixWriter::new()));
-    return maps;
-}
-
 pub struct MultiFormatWriter {
-    pub encoders: HashMap<BarcodeFormat, Box<dyn Writer>>,
+    encoders: HashMap<BarcodeFormat, Box<dyn Writer>>,
 }
 
 impl MultiFormatWriter {
+    pub fn get_encoders() -> HashMap<BarcodeFormat, Box<dyn Writer>> {
+        let mut maps: HashMap<BarcodeFormat, Box<dyn Writer>> = HashMap::new();
+
+        maps.insert(BarcodeFormat::QRCode, Box::new(QRCodeWriter::new()));
+        maps.insert(BarcodeFormat::DataMatrix, Box::new(DataMatrixWriter::new()));
+        return maps;
+    }
+    pub fn new() -> MultiFormatWriter {
+        MultiFormatWriter {
+            encoders: MultiFormatWriter::get_encoders(),
+        }
+    }
+
     pub fn write_to_path(&self, bit_matrix: &BitMatrix, path: &String) {
         println!(
             "write_to_path width: {}, height: {}, row_size: {}",

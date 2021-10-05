@@ -179,7 +179,7 @@ impl MatrixUtil {
     // Embed version information if need be. On success, modify the matrix and return true.
     // See 8.10 of JISX0510:2004 (p.47) for how to embed version information.
     fn maybe_embed_version_info(version: &Version, matrix: &mut ByteMatrix) {
-        if (version.get_version_number() < 7) {
+        if version.get_version_number() < 7 {
             // Version info is necessary if version >= 7.
             return; // Don't need version info.
         }
@@ -223,7 +223,7 @@ impl MatrixUtil {
                         continue;
                     }
                     let mut bit;
-                    if (bit_index < data_bits.get_size()) {
+                    if bit_index < data_bits.get_size() {
                         bit = data_bits.get(bit_index);
                         bit_index += 1;
                     } else {
@@ -456,7 +456,7 @@ impl MatrixUtil {
         );
         bits.append_bits(bch_code, 12);
 
-        if (bits.get_size() != 18) {
+        if bits.get_size() != 18 {
             // Just in case.
             panic!("should not happen but we got: {}", bits.get_size());
         }
@@ -464,7 +464,7 @@ impl MatrixUtil {
 
     // Embed position adjustment patterns if need be.
     fn maybe_embed_position_adjustment_patterns(version: &Version, matrix: &mut ByteMatrix) {
-        if (version.get_version_number() < 2) {
+        if version.get_version_number() < 2 {
             // The patterns appear if version >= 2
             return;
         }
