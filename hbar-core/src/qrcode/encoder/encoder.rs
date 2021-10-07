@@ -4,29 +4,31 @@ use crate::common::{GenericGFEnum, ReedSolomonEncoder};
 use crate::encode_hint_type::EncodeHintType;
 use crate::qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, Versions};
 use crate::qrcode::encoder::{BlockPair, ByteMatrix, MaskUtil, MatrixUtil, QRCode};
+use crate::Error;
 use crate::WriterException;
 
 use std::collections::HashMap;
 use std::str::FromStr;
 
 pub struct Encoder {
-    alphanumeric_table: [i32; 96],
-    default_byte_mode_encoding: Charset,
     versions: Versions,
 }
 
 impl Encoder {
+    // The original table is defined in the table 5 of JISX0510:2004 (p.19).
+    const ALPHANUMERIC_TABLE: [i32; 96] = [
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 0x00-0x0f
+        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 0x10-0x1f
+        36, -1, -1, -1, 37, 38, -1, -1, -1, -1, 39, 40, -1, 41, 42, 43, // 0x20-0x2f
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 44, -1, -1, -1, -1, -1, // 0x30-0x3f
+        -1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, // 0x40-0x4f
+        25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, -1, -1, -1, -1, -1, // 0x50-0x5f
+    ];
+
+    const DEFAULT_BYTE_MODE_ENCODING: Charset = Charset::UTF8;
+
     pub fn new() -> Self {
         Encoder {
-            alphanumeric_table: [
-                -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 0x00-0x0f
-                -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 0x10-0x1f
-                36, -1, -1, -1, 37, 38, -1, -1, -1, -1, 39, 40, -1, 41, 42, 43, // 0x20-0x2f
-                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 44, -1, -1, -1, -1, -1, // 0x30-0x3f
-                -1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, // 0x40-0x4f
-                25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, -1, -1, -1, -1, -1, // 0x50-0x5f
-            ],
-            default_byte_mode_encoding: Charset::ISO8859_1,
             versions: Versions::new(),
         }
     }
@@ -47,7 +49,7 @@ impl Encoder {
         hints: HashMap<EncodeHintType, &String>,
     ) -> Result<QRCode, WriterException> {
         // Determine what character encoding has been specified by the caller, if any
-        let mut encoding = self.default_byte_mode_encoding.clone();
+        let mut encoding = Encoder::DEFAULT_BYTE_MODE_ENCODING;
         let has_encoding_hint = hints.contains_key(&EncodeHintType::CharacterSet);
         if has_encoding_hint {
             let tmp_charset = hints.get(&EncodeHintType::CharacterSet).unwrap();
@@ -218,8 +220,8 @@ impl Encoder {
     }
 
     fn _get_alphanumeric_code(&self, code: i32) -> i32 {
-        if code < self.alphanumeric_table.len() as i32 {
-            return self.alphanumeric_table[code as usize];
+        if code < Encoder::ALPHANUMERIC_TABLE.len() as i32 {
+            return Encoder::ALPHANUMERIC_TABLE[code as usize];
         }
         return -1;
     }
@@ -231,7 +233,7 @@ impl Encoder {
     fn append_bytes(&self, content: &String, mode: &Mode, bits: &mut BitArray, encoding: &Charset) {
         match mode {
             Mode::Numeric(_, _) => self.append_numeric_bytes(content, bits),
-            Mode::Alphanumeric(_, _) => self.append_alphanumeric_bytes(content, bits),
+            Mode::Alphanumeric(_, _) => self.append_alphanumeric_bytes(content, bits).unwrap(),
             Mode::Byte(_, _) => self.append_8bit_bytes(content, bits, encoding),
             Mode::Kanji(_, _) => self.append_kanji_bytes(content, bits),
             other => {
@@ -266,16 +268,58 @@ impl Encoder {
         }
     }
 
-    fn append_alphanumeric_bytes(&self, content: &String, bits: &mut BitArray) {
-        todo!("append_alphanumeric_bytes")
+    fn append_alphanumeric_bytes(
+        &self,
+        content: &String,
+        bits: &mut BitArray,
+    ) -> Result<(), Error> {
+        let length = content.len();
+        let mut i = 0;
+
+        while i < length {
+            let code1 = Encoder::get_alphanumeric_code(content.chars().nth(i).unwrap() as i32);
+            if code1 == -1 {
+                return Err(Error::WriterException(format!(
+                    "Get alphanumeric code error code1: {}",
+                    code1
+                )));
+            }
+            if i + 1 < length {
+                let code2 =
+                    Encoder::get_alphanumeric_code(content.chars().nth(i + 1).unwrap() as i32);
+                if code2 == -1 {
+                    return Err(Error::WriterException(format!(
+                        "Get alphanumeric code error code2: {}",
+                        code1
+                    )));
+                }
+                // Encode two alphanumeric letters in 11 bits.
+                bits.append_bits(code1 * 45 + code2, 11);
+                i += 2;
+            } else {
+                // Encode one alphanumeric letter in six bits.
+                bits.append_bits(code1, 6);
+                i += 1;
+            }
+        }
+        Ok(())
     }
 
     fn append_8bit_bytes(&self, content: &String, bits: &mut BitArray, encoding: &Charset) {
-        todo!("append_8bit_bytes")
+        let bytes = encoding.encode(content).unwrap();
+        for byte in bytes {
+            bits.append_bits(byte as i32, 8)
+        }
     }
 
     fn append_kanji_bytes(&self, content: &String, bits: &mut BitArray) {
-        todo!("append_kanji_bytes")
+        let bytes = Charset::UTF8.encode(content).unwrap();
+        println!(
+            "append_kanji_bytes bytes: {}, content: {}",
+            bytes.len(),
+            content.len()
+        );
+        todo!()
     }
 
     /**
@@ -347,6 +391,17 @@ impl Encoder {
         Err(WriterException {
             reason: String::from("Data too big"),
         })
+    }
+
+    /**
+     * @return the code point of the table used in alphanumeric mode or
+     *  -1 if there is no corresponding code in the table.
+     */
+    fn get_alphanumeric_code(code: i32) -> i32 {
+        if code < Encoder::ALPHANUMERIC_TABLE.len() as i32 {
+            return Encoder::ALPHANUMERIC_TABLE[code as usize];
+        }
+        return -1;
     }
 
     /**
