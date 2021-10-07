@@ -1,5 +1,6 @@
 use crate::common::BitArray;
 use crate::common::Charset;
+use crate::common::{GenericGFEnum, ReedSolomonEncoder};
 use crate::encode_hint_type::EncodeHintType;
 use crate::qrcode::decoder::{ErrorCorrectionLevel, Mode, Version, Versions};
 use crate::qrcode::encoder::{BlockPair, ByteMatrix, MaskUtil, MatrixUtil, QRCode};
@@ -163,7 +164,9 @@ impl Encoder {
             mask_pattern,
             &mut matrix,
         );
-        println!("matrix: {}", matrix);
+        println!("mask_pattern: {}", mask_pattern);
+        println!("ec_level: {:?}", ec_level);
+        // println!("matrix: {}", matrix);
         let qr_code = QRCode::new(mode, ec_level, version.clone(), mask_pattern, matrix);
 
         Ok(qr_code)
@@ -454,7 +457,7 @@ impl Encoder {
             let size = num_data_bytes_in_block[0];
             let mut data_bytes: Vec<i32> = vec![0; size as usize];
             bits.to_bytes(8 * data_bytes_offset, &mut data_bytes, 0, size);
-            let ec_bytes = self.generate_ec_bytes(&data_bytes, num_ec_bytes_in_block[0]);
+            let ec_bytes = self.generate_ec_bytes(&mut data_bytes, num_ec_bytes_in_block[0]);
             let ec_bytes_length = ec_bytes.len() as i32;
             blocks.push(BlockPair::new(data_bytes, ec_bytes));
 
@@ -562,15 +565,28 @@ impl Encoder {
         }
     }
 
-    fn generate_ec_bytes(&self, data_bytes: &Vec<i32>, num_ec_bytes_in_block: i32) -> Vec<i32> {
+    fn generate_ec_bytes(&self, data_bytes: &mut Vec<i32>, num_ec_bytes_in_block: i32) -> Vec<i32> {
         let num_data_bytes = data_bytes.len();
         let mut to_encode: Vec<i32> = vec![0; num_data_bytes + num_ec_bytes_in_block as usize];
         for i in 0..num_data_bytes {
             to_encode[i] = data_bytes[i] & 0xFF;
         }
-        // todo!();
-        // new ReedSolomonEncoder(GenericGF.QR_CODE_FIELD_256).encode(toEncode, numEcBytesInBlock);
 
+        println!(
+            "generate_ec_bytes to_encode: {:?}, size: {}",
+            to_encode,
+            to_encode.len()
+        );
+        ReedSolomonEncoder::new(&GenericGFEnum::QR_CODE_FIELD_256.get())
+            .unwrap()
+            .encode(&mut to_encode, num_ec_bytes_in_block)
+            .unwrap();
+
+        println!(
+            "generate_ec_bytes encode to_encode: {:?}, size: {}",
+            to_encode,
+            to_encode.len()
+        );
         let mut ec_bytes: Vec<i32> = vec![0; num_ec_bytes_in_block as usize];
         for i in 0..num_ec_bytes_in_block {
             ec_bytes[i as usize] = to_encode[num_data_bytes + i as usize]

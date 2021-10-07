@@ -410,6 +410,7 @@ impl MatrixUtil {
         // If poly is "1 1111 0010 0101" (version info poly), msbSetInPoly is 13. We'll subtract 1
         // from 13 to make it 12.
         let msb_set_in_poly = MatrixUtil::find_msb_set(poly);
+        value <<= msb_set_in_poly - 1;
         // Do the division business using exclusive-or operations.
         while MatrixUtil::find_msb_set(value) >= msb_set_in_poly {
             value ^= poly << (MatrixUtil::find_msb_set(value) - msb_set_in_poly);
