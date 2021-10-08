@@ -129,6 +129,46 @@ fn build_versions() -> Vec<Version> {
                 ECBlocks::new(22, vec![ECB::new(2, 11), ECB::new(2, 12)]),
             ],
         ),
+        Version::new(
+            6,
+            vec![6, 34],
+            vec![
+                ECBlocks::new(18, vec![ECB::new(2, 68)]),
+                ECBlocks::new(16, vec![ECB::new(4, 27)]),
+                ECBlocks::new(24, vec![ECB::new(4, 19)]),
+                ECBlocks::new(28, vec![ECB::new(4, 15)]),
+            ],
+        ),
+        Version::new(
+            7,
+            vec![6, 22, 38],
+            vec![
+                ECBlocks::new(20, vec![ECB::new(2, 78)]),
+                ECBlocks::new(18, vec![ECB::new(4, 31)]),
+                ECBlocks::new(18, vec![ECB::new(2, 14), ECB::new(4, 15)]),
+                ECBlocks::new(26, vec![ECB::new(4, 13), ECB::new(1, 14)]),
+            ],
+        ),
+        Version::new(
+            8,
+            vec![6, 24, 42],
+            vec![
+                ECBlocks::new(24, vec![ECB::new(2, 97)]),
+                ECBlocks::new(22, vec![ECB::new(2, 38), ECB::new(2, 39)]),
+                ECBlocks::new(22, vec![ECB::new(4, 18), ECB::new(2, 19)]),
+                ECBlocks::new(26, vec![ECB::new(4, 14), ECB::new(2, 15)]),
+            ],
+        ),
+        Version::new(
+            9,
+            vec![6, 26, 46],
+            vec![
+                ECBlocks::new(30, vec![ECB::new(2, 116)]),
+                ECBlocks::new(22, vec![ECB::new(3, 36), ECB::new(2, 37)]),
+                ECBlocks::new(20, vec![ECB::new(4, 16), ECB::new(4, 17)]),
+                ECBlocks::new(24, vec![ECB::new(4, 12), ECB::new(4, 13)]),
+            ],
+        ),
     ]
 }
 
