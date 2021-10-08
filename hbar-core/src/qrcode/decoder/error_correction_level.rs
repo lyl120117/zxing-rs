@@ -1,5 +1,6 @@
 use strum_macros::{EnumString, EnumVariantNames, ToString};
 // You need to import the trait, to have access to VARIANTS
+use crate::Error;
 use strum::VariantNames;
 
 #[derive(Debug, PartialEq, Eq, Hash, EnumString, ToString, EnumVariantNames)]
@@ -31,6 +32,18 @@ impl ErrorCorrectionLevel {
             return true;
         }
         return false;
+    }
+
+    pub fn from(ec_level: &str) -> Result<ErrorCorrectionLevel, Error> {
+        match ec_level {
+            "L" => Ok(ErrorCorrectionLevel::L),
+            "M" => Ok(ErrorCorrectionLevel::M),
+            "Q" => Ok(ErrorCorrectionLevel::Q),
+            "H" => Ok(ErrorCorrectionLevel::H),
+            _ => Err(Error::IllegalArgumentException(
+                "Invalid error correct level".to_string(),
+            )),
+        }
     }
 
     pub fn get_bits(&self) -> i32 {

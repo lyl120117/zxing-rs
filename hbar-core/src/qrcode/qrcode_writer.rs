@@ -63,10 +63,9 @@ impl Writer for QRCodeWriter {
 
         let error_correction_level;
         if hints.contains_key(&EncodeHintType::ErrorCorrection) {
-            error_correction_level = ErrorCorrectionLevel::from_str(
-                hints.get(&EncodeHintType::ErrorCorrection).unwrap(),
-            )
-            .unwrap();
+            error_correction_level =
+                ErrorCorrectionLevel::from(hints.get(&EncodeHintType::ErrorCorrection).unwrap())
+                    .unwrap();
         } else {
             error_correction_level = ErrorCorrectionLevel::L;
         }
