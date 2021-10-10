@@ -632,7 +632,7 @@ impl Encoder {
             to_encode,
             to_encode.len()
         );
-        ReedSolomonEncoder::new(&GenericGFEnum::QR_CODE_FIELD_256.get())
+        ReedSolomonEncoder::new(&GenericGFEnum::QrCodeField256.get())
             .unwrap()
             .encode(&mut to_encode, num_ec_bytes_in_block)
             .unwrap();

@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BitMatrix {
     pub width: i32,
     pub height: i32,

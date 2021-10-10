@@ -2,27 +2,27 @@ use crate::common::reedsolomon::GenericGFPoly;
 use crate::Error;
 
 pub enum GenericGFEnum {
-    AZTEC_DATA_12,
-    AZTEC_DATA_10,
-    AZTEC_DATA_6,
-    AZTEC_PARAM,
-    QR_CODE_FIELD_256,
-    DATA_MATRIX_FIELD_256,
-    AZTEC_DATA_8,
-    MAXICODE_FIELD_64,
+    AztecData12,
+    AztecData10,
+    AztecData6,
+    AztecParam,
+    QrCodeField256,
+    DataMatrixField256,
+    AztecData8,
+    MaxicodeField64,
 }
 
 impl GenericGFEnum {
     pub fn get(&self) -> GenericGF {
         match self {
-            GenericGFEnum::AZTEC_DATA_12 => GenericGF::new(0x1069, 4096, 1), // x^12 + x^6 + x^5 + x^3 + 1
-            GenericGFEnum::AZTEC_DATA_10 => GenericGF::new(0x409, 1024, 1),  // x^10 + x^3 + 1
-            GenericGFEnum::AZTEC_DATA_6 => GenericGF::new(0x43, 64, 1),      // x^6 + x + 1
-            GenericGFEnum::AZTEC_PARAM => GenericGF::new(0x13, 16, 1),       // x^4 + x + 1
-            GenericGFEnum::QR_CODE_FIELD_256 => GenericGF::new(0x011D, 256, 0), // x^8 + x^4 + x^3 + x^2 + 1
-            GenericGFEnum::DATA_MATRIX_FIELD_256 => GenericGF::new(0x012D, 256, 1), // x^8 + x^5 + x^3 + x^2 + 1
-            GenericGFEnum::AZTEC_DATA_8 => GenericGFEnum::DATA_MATRIX_FIELD_256.get(),
-            GenericGFEnum::MAXICODE_FIELD_64 => GenericGFEnum::AZTEC_DATA_6.get(),
+            GenericGFEnum::AztecData12 => GenericGF::new(0x1069, 4096, 1), // x^12 + x^6 + x^5 + x^3 + 1
+            GenericGFEnum::AztecData10 => GenericGF::new(0x409, 1024, 1),  // x^10 + x^3 + 1
+            GenericGFEnum::AztecData6 => GenericGF::new(0x43, 64, 1),      // x^6 + x + 1
+            GenericGFEnum::AztecParam => GenericGF::new(0x13, 16, 1),      // x^4 + x + 1
+            GenericGFEnum::QrCodeField256 => GenericGF::new(0x011D, 256, 0), // x^8 + x^4 + x^3 + x^2 + 1
+            GenericGFEnum::DataMatrixField256 => GenericGF::new(0x012D, 256, 1), // x^8 + x^5 + x^3 + x^2 + 1
+            GenericGFEnum::AztecData8 => GenericGFEnum::DataMatrixField256.get(),
+            GenericGFEnum::MaxicodeField64 => GenericGFEnum::AztecData6.get(),
         }
     }
 }

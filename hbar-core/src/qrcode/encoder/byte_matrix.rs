@@ -13,17 +13,17 @@ impl fmt::Display for ByteMatrix {
             for x in 0..self.width {
                 match bytes_y[x as usize] {
                     0 => {
-                        write!(f, " 0");
+                        write!(f, " 0").unwrap();
                     }
                     1 => {
-                        write!(f, " 1");
+                        write!(f, " 1").unwrap();
                     }
                     _ => {
-                        write!(f, "  ");
+                        write!(f, "  ").unwrap();
                     }
                 }
             }
-            write!(f, "\n");
+            write!(f, "\n").unwrap();
         }
         write!(f, " {}x{}", self.width, self.height)
     }

@@ -1,7 +1,7 @@
 use strum_macros::EnumString;
 use strum_macros::ToString;
 
-#[derive(Debug, PartialEq, Eq, Hash, EnumString, ToString)]
+#[derive(Debug, PartialEq, Eq, Hash, EnumString, ToString, Clone)]
 pub enum BarcodeFormat {
     /** Aztec 2D barcode format. */
     Aztec,

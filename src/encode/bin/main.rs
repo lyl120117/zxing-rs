@@ -1,6 +1,6 @@
-use hbar_core::encode_hint_type::EncodeHintType;
-use hbar_core::writer::Writer;
+use hbar_core::EncodeHintType;
 use hbar_core::MultiFormatWriter;
+use hbar_core::Writer;
 
 mod encoder_config;
 use crate::encoder_config::EncoderConfig;

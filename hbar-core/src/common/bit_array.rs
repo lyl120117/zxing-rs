@@ -9,12 +9,12 @@ impl fmt::Display for BitArray {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for i in 0..self.size {
             if (i & 0x07) == 0 {
-                write!(f, " ");
+                write!(f, " ").unwrap();
             }
             if self.get(i) {
-                write!(f, "X");
+                write!(f, "X").unwrap();
             } else {
-                write!(f, ".");
+                write!(f, ".").unwrap();
             }
         }
         write!(f, " size: {}", self.size)
@@ -27,6 +27,18 @@ impl BitArray {
             bits: vec![0],
             size: 0,
         }
+    }
+
+    pub fn new1(size: u32) -> BitArray {
+        BitArray {
+            bits: BitArray::make_array(size),
+            size: 0,
+        }
+    }
+
+    fn make_array(size: u32) -> Vec<i32> {
+        let size = ((size + 31) / 32) as usize;
+        vec![0; size]
     }
 
     /**
@@ -124,5 +136,12 @@ impl BitArray {
             // it) but there is no problem since 0 XOR 0 == 0.
             self.bits[i] ^= other.bits[i];
         }
+    }
+
+    /**
+     * Clears all bits (sets to false).
+     */
+    pub fn clear(&mut self) {
+        self.bits = vec![0; self.bits.len()]
     }
 }

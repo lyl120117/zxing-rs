@@ -36,9 +36,9 @@ impl ReedSolomonEncoder {
                             .exp(d as i32 - 1 + self.field.get_generator_base())?,
                     ],
                 )?;
-                let nextGenerator = last_generator.multiply_by_other(&other)?;
-                self.cached_generators.push(nextGenerator.clone());
-                last_generator = nextGenerator;
+                let next_generator = last_generator.multiply_by_other(&other)?;
+                self.cached_generators.push(next_generator.clone());
+                last_generator = next_generator;
             }
         }
         let last_generator = self.cached_generators.get(degree as usize);

@@ -1,10 +1,10 @@
 use hbar_core;
-use hbar_core::barcode_format::BarcodeFormat;
+use hbar_core::BarcodeFormat;
 
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "zxing-rs", about = "Usage of zxing-rs.")]
+#[structopt(name = "encode", about = "Usage of encode.")]
 pub struct EncoderConfig {
     /// Format to encode, from BarcodeFormat class. Not all formats are supported
     #[structopt(short = "b", parse(try_from_str), default_value = "QRCode")]
