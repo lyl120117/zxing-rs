@@ -2,6 +2,7 @@ use hbar_core::BufferedImage;
 use hbar_core::Error;
 use hbar_core::LuminanceSource;
 
+#[derive(Debug)]
 pub struct BufferedImageLuminanceSource {
     image: BufferedImage,
     width: u32,
@@ -26,6 +27,10 @@ impl BufferedImageLuminanceSource {
         if image.get_type() != BufferedImage::TYPE_BYTE_GRAY {
             _image.to_gray()
         }
+        println!(
+            "width: {}, height: {}, left: {}, top: {}",
+            width, height, left, top
+        );
         Ok(BufferedImageLuminanceSource {
             image: _image,
             width: width,

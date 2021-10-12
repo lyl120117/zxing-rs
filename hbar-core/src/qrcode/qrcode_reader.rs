@@ -19,8 +19,17 @@ impl QRCodeReader {
 }
 
 impl<B, S> Reader<B, S> for QRCodeReader {
+    /**
+     * Locates and decodes a QR code in an image.
+     *
+     * @return a String representing the content encoded by the QR code
+     * @throws NotFoundException if a QR code cannot be found
+     * @throws FormatException if a QR code cannot be decoded
+     * @throws ChecksumException if error correction fails
+     */
     fn decode(&self, image: &crate::BinaryBitmap<B, S>) -> crate::ResultError<crate::Results> {
-        todo!()
+        let hints: HashMap<crate::DecodeHintType, crate::DecodeHintValue> = HashMap::new();
+        self.decode_hints(image, &hints)
     }
 
     fn decode_hints(
@@ -28,6 +37,7 @@ impl<B, S> Reader<B, S> for QRCodeReader {
         image: &crate::BinaryBitmap<B, S>,
         hints: &HashMap<crate::DecodeHintType, crate::DecodeHintValue>,
     ) -> crate::ResultError<crate::Results> {
+        println!("QRCodeReader decode_hints hints: {:?}", hints);
         todo!()
     }
 

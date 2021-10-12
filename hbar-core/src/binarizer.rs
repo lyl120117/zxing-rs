@@ -1,9 +1,11 @@
 use crate::common::{BitArray, BitMatrix};
+use crate::LuminanceSource;
 use crate::ResultError;
 
-use std::rc::Rc;
-
-pub trait Binarizer<S> {
+pub trait Binarizer<S>
+where
+    S: LuminanceSource,
+{
     /**
      * Converts one row of luminance data to 1 bit data. May actually do the conversion, or return
      * cached data. Callers should assume this method is expensive and call it as seldom as possible.

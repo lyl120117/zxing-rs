@@ -110,15 +110,15 @@ impl<B, S> MultiFormatReader<B, S> {
             if add_one_dreader && try_harder {
                 todo!()
             }
-            if readers.is_empty() {
-                if !try_harder {
-                    todo!()
-                }
-                readers.push(Box::new(QRCodeReader::new()));
+        }
+        if readers.is_empty() {
+            if !try_harder {
+                // todo!()
+            }
+            readers.push(Box::new(QRCodeReader::new()));
 
-                if try_harder {
-                    todo!()
-                }
+            if try_harder {
+                todo!()
             }
         }
         self.readers.borrow_mut().clear();

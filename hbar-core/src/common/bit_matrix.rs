@@ -33,6 +33,17 @@ impl BitMatrix {
     }
 
     /**
+     * <p>Sets the given bit to true.</p>
+     *
+     * @param x The horizontal component (i.e. which column)
+     * @param y The vertical component (i.e. which row)
+     */
+    pub fn set(&mut self, x: u32, y: u32) {
+        let offset = y as i32 * self.row_size + (x as i32 / 32);
+        self.bits[offset as usize] |= 1 << (x & 0x1f);
+    }
+
+    /**
      * <p>Sets a square region of the bit matrix to true.</p>
      *
      * @param left The horizontal position to begin at (inclusive)

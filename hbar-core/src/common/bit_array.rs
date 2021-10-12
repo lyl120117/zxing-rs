@@ -101,6 +101,15 @@ impl BitArray {
         (self.bits[i as usize / 32] & (1 << (i & 0x1F))) != 0
     }
 
+    /**
+     * Sets bit i.
+     *
+     * @param i bit to set
+     */
+    pub fn set(&mut self, i: i32) {
+        self.bits[i as usize / 32] |= 1 << (i & 0x1F);
+    }
+
     pub fn get_size_in_bytes(&self) -> i32 {
         return (self.size + 7) / 8;
     }
