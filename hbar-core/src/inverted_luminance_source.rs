@@ -14,7 +14,7 @@ impl InvertedLuminanceSource {
 }
 
 impl LuminanceSource for InvertedLuminanceSource {
-    fn get_row(&self, y: i32, row: Vec<u8>) -> Result<Vec<u8>, Error> {
+    fn get_row(&self, y: i32, row: &Vec<u8>) -> Result<Vec<u8>, Error> {
         let mut row = self.delegate.get_row(y, row)?;
         let width = self.get_width();
         for i in 0..width {

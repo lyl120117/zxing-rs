@@ -7,7 +7,7 @@ use strum_macros::ToString;
  * if anything, to do with the information that is supplied.
  */
 
-#[derive(Debug, PartialEq, Eq, Hash, EnumString, ToString)]
+#[derive(Debug, PartialEq, Eq, Hash, EnumString, ToString, Clone)]
 pub enum DecodeHintType {
     /**
      * Unspecified, application-specific hint. Maps to an unspecified {@link Object}.
@@ -84,6 +84,7 @@ pub enum DecodeHintType {
     AlsoInverted,
 }
 
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum DecodeHintValue {
     BOOL(bool),
     VecI32(Vec<i32>),

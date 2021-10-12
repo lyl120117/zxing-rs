@@ -1,8 +1,9 @@
 use crate::common::{BitArray, BitMatrix};
-use crate::Error;
-use crate::LuminanceSource;
+use crate::ResultError;
 
-pub trait Binarizer {
+use std::rc::Rc;
+
+pub trait Binarizer<S> {
     /**
      * Converts one row of luminance data to 1 bit data. May actually do the conversion, or return
      * cached data. Callers should assume this method is expensive and call it as seldom as possible.
@@ -17,7 +18,7 @@ pub trait Binarizer {
      * @return The array of bits for this row (true means black).
      * @throws NotFoundException if row can't be binarized
      */
-    fn get_black_row(&self, y: u32, row: &BitArray) -> Result<BitArray, Error>;
+    fn get_black_row(&self, y: u32, row: &BitArray) -> ResultError<BitArray>;
 
     /**
      * Converts a 2D array of luminance data to 1 bit data. As above, assume this method is expensive
@@ -28,7 +29,7 @@ pub trait Binarizer {
      * @return The 2D array of bits for the image (true means black).
      * @throws NotFoundException if image can't be binarized to make a matrix
      */
-    fn get_black_matrix(&self) -> Result<BitMatrix, Error>;
+    fn get_black_matrix(&mut self) -> ResultError<BitMatrix>;
 
     /**
      * Creates a new object with the same type as this Binarizer implementation, but with pristine
@@ -38,12 +39,9 @@ pub trait Binarizer {
      * @param source The LuminanceSource this Binarizer will operate on.
      * @return A new concrete Binarizer implementation object.
      */
-    fn create_binarizer(
-        &self,
-        source: Box<dyn LuminanceSource>,
-    ) -> Result<Box<dyn Binarizer>, Error>;
+    fn create_binarizer(&self, source: S) -> Self;
 
-    fn get_luminance_source(&self) -> &Box<dyn LuminanceSource>;
+    fn get_luminance_source(&self) -> ResultError<&S>;
 
     fn get_width(&self) -> u32;
     fn get_height(&self) -> u32;

@@ -5,4 +5,8 @@ pub enum Error {
     WriterException(String),
     ImageErrorException(String),
     UnsupportedOperationException(String),
+    TryFromIntError(String),
+    Infallible(String),
+    NotFoundException(String),
 }
+pub type ResultError<T> = Result<T, Error>;

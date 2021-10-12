@@ -37,7 +37,7 @@ impl BufferedImageLuminanceSource {
 }
 
 impl LuminanceSource for BufferedImageLuminanceSource {
-    fn get_row(&self, y: i32, _row: Vec<u8>) -> Result<Vec<u8>, Error> {
+    fn get_row(&self, y: i32, _row: &Vec<u8>) -> Result<Vec<u8>, Error> {
         if y < 0 || y as u32 >= self.get_height() {
             return Err(Error::IllegalArgumentException(format!(
                 "Requested row is outside the image: {}",

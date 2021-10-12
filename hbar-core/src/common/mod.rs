@@ -11,6 +11,7 @@ pub use bit_array::BitArray;
 pub use bit_matrix::BitMatrix;
 pub use charset::Charset;
 pub use detector::MathUtils;
+pub use global_histogram_binarizer::GlobalHistogramBinarizer;
 pub use hybrid_binarizer::HybridBinarizer;
 pub use reedsolomon::{GenericGFEnum, ReedSolomonEncoder};
 pub use system_times::SystemTimes;

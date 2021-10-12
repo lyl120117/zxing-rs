@@ -15,7 +15,7 @@ pub trait LuminanceSource {
      *            Always use the returned object, and ignore the .length of the array.
      * @return An array containing the luminance data.
      */
-    fn get_row(&self, y: i32, row: Vec<u8>) -> Result<Vec<u8>, Error>;
+    fn get_row(&self, y: i32, row: &Vec<u8>) -> Result<Vec<u8>, Error>;
 
     /**
      * Fetches luminance data for the underlying bitmap. Values should be fetched using:
@@ -112,7 +112,7 @@ impl fmt::Display for dyn LuminanceSource {
         let height = self.get_height() as usize;
         let mut row = vec![0; width];
         for y in 0..height {
-            row = self.get_row(y as i32, row).unwrap();
+            row = self.get_row(y as i32, &row).unwrap();
             for x in 0..width {
                 let luminance = row[x] & 0xFF;
                 let c;
