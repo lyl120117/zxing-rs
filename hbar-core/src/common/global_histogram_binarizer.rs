@@ -161,7 +161,7 @@ where
         let source = self.get_luminance_source()?;
         let width = source.get_width() as i32;
         let height = source.get_height() as i32;
-        let mut matrix = BitMatrix::new2(width, height);
+        let mut matrix = BitMatrix::new2(width, height)?;
 
         // Quickly calculates the histogram by sampling four rows from the image. This proved to be
         // more robust on the blackbox tests than sampling a diagonal as we used to do.

@@ -19,7 +19,7 @@ where
     pub fn new(binarizer: B) -> BinaryBitmap<B, S> {
         BinaryBitmap {
             binarizer: RefCell::new(binarizer),
-            matrix: RefCell::new(BitMatrix::new2(1, 1)),
+            matrix: RefCell::new(BitMatrix::new2(1, 1).unwrap()),
             _tmp: None,
             matrix_inited: false,
         }

@@ -1,6 +1,7 @@
 use crate::Error;
 
 use std::fmt;
+use std::rc::Rc;
 
 pub trait LuminanceSource {
     /**
@@ -60,7 +61,7 @@ pub trait LuminanceSource {
         _top: u32,
         _width: u32,
         _height: u32,
-    ) -> Result<Box<dyn LuminanceSource>, Error> {
+    ) -> Result<Rc<dyn LuminanceSource>, Error> {
         Err(Error::UnsupportedOperationException(String::from(
             "This luminance source does not support cropping.",
         )))
@@ -77,9 +78,7 @@ pub trait LuminanceSource {
      * @return a wrapper of this {@code LuminanceSource} which inverts the luminances it returns -- black becomes
      *  white and vice versa, and each value becomes (255-value).
      */
-    fn invert(&self) -> Result<&Box<dyn LuminanceSource>, Error> {
-        todo!()
-    }
+    fn invert(&self) -> Result<Rc<dyn LuminanceSource>, Error>;
 
     /**
      * Returns a new object with rotated image data by 90 degrees counterclockwise.
@@ -87,7 +86,7 @@ pub trait LuminanceSource {
      *
      * @return A rotated version of this object.
      */
-    fn rotate_counter_clockwise(&self) -> Result<Box<dyn LuminanceSource>, Error> {
+    fn rotate_counter_clockwise(&self) -> Result<Rc<dyn LuminanceSource>, Error> {
         Err(Error::UnsupportedOperationException(String::from(
             "This luminance source does not support rotation by 90 degrees.",
         )))
@@ -99,7 +98,7 @@ pub trait LuminanceSource {
      *
      * @return A rotated version of this object.
      */
-    fn rotate_counter_clockwise45(&self) -> Result<Box<dyn LuminanceSource>, Error> {
+    fn rotate_counter_clockwise45(&self) -> Result<Rc<dyn LuminanceSource>, Error> {
         Err(Error::UnsupportedOperationException(String::from(
             "This luminance source does not support rotation by 45 degrees.",
         )))

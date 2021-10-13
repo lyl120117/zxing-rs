@@ -73,7 +73,7 @@ impl<'a> DecodeWorker<'a> {
         if self.config.borrow().multi {
             todo!()
         } else {
-            results.push(multi_format_reader.decode(&bitmap)?);
+            results.push(multi_format_reader.decode_hints(&bitmap, hints)?);
         }
 
         todo!()

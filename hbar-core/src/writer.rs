@@ -1,7 +1,7 @@
 use crate::barcode_format::BarcodeFormat;
 use crate::common::BitMatrix;
 use crate::encode_hint_type::EncodeHintType;
-use crate::WriterException;
+use crate::ResultError;
 use std::collections::HashMap;
 
 pub trait Writer {
@@ -21,7 +21,7 @@ pub trait Writer {
         format: &BarcodeFormat,
         width: i32,
         height: i32,
-    ) -> Result<BitMatrix, WriterException>;
+    ) -> ResultError<BitMatrix>;
     fn encode_hints(
         &self,
         contents: &String,
@@ -29,5 +29,5 @@ pub trait Writer {
         width: i32,
         height: i32,
         hints: HashMap<EncodeHintType, &String>,
-    ) -> Result<BitMatrix, WriterException>;
+    ) -> ResultError<BitMatrix>;
 }

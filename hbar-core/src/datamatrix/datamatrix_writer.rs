@@ -2,7 +2,7 @@ use crate::barcode_format::BarcodeFormat;
 use crate::common::BitMatrix;
 use crate::encode_hint_type::EncodeHintType;
 use crate::writer::Writer;
-use crate::WriterException;
+use crate::ResultError;
 use std::collections::HashMap;
 
 pub struct DataMatrixWriter;
@@ -20,7 +20,7 @@ impl Writer for DataMatrixWriter {
         format: &BarcodeFormat,
         width: i32,
         height: i32,
-    ) -> Result<BitMatrix, WriterException> {
+    ) -> ResultError<BitMatrix> {
         let hints: HashMap<EncodeHintType, &String> = HashMap::new();
         self.encode_hints(contents, format, width, height, hints)
     }
@@ -32,7 +32,7 @@ impl Writer for DataMatrixWriter {
         width: i32,
         height: i32,
         hints: HashMap<EncodeHintType, &String>,
-    ) -> Result<BitMatrix, WriterException> {
-        Ok(BitMatrix::new2(0, 0))
+    ) -> ResultError<BitMatrix> {
+        Ok(BitMatrix::new2(0, 0)?)
     }
 }

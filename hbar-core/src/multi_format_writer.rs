@@ -4,7 +4,7 @@ use crate::datamatrix::DataMatrixWriter;
 use crate::encode_hint_type::EncodeHintType;
 use crate::qrcode::QRCodeWriter;
 use crate::writer::Writer;
-use crate::WriterException;
+use crate::ResultError;
 
 use std::collections::HashMap;
 
@@ -63,7 +63,7 @@ impl Writer for MultiFormatWriter {
         format: &BarcodeFormat,
         width: i32,
         height: i32,
-    ) -> Result<BitMatrix, WriterException> {
+    ) -> ResultError<BitMatrix> {
         let hints: HashMap<EncodeHintType, &String> = HashMap::new();
         self.encode_hints(contents, format, width, height, hints)
     }
@@ -75,7 +75,7 @@ impl Writer for MultiFormatWriter {
         width: i32,
         height: i32,
         hints: HashMap<EncodeHintType, &String>,
-    ) -> Result<BitMatrix, WriterException> {
+    ) -> ResultError<BitMatrix> {
         println!("encode begining...");
         let encoder = self.encoders.get(format).unwrap();
         let resut = encoder.encode_hints(contents, format, width, height, hints);

@@ -233,7 +233,7 @@ where
                 width as i32,
                 height as i32,
             );
-            let mut newMatrix = BitMatrix::new2(width as i32, height as i32);
+            let mut newMatrix = BitMatrix::new2(width as i32, height as i32)?;
             HybridBinarizer::<S>::calculateThresholdForBlock(
                 &luminances,
                 subWidth as i32,

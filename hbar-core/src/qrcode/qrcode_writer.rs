@@ -4,7 +4,7 @@ use crate::encode_hint_type::EncodeHintType;
 use crate::qrcode::decoder::ErrorCorrectionLevel;
 use crate::qrcode::encoder::{Encoder, QRCode};
 use crate::writer::Writer;
-use crate::WriterException;
+use crate::{Error, ResultError};
 
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -29,7 +29,7 @@ impl Writer for QRCodeWriter {
         format: &BarcodeFormat,
         width: i32,
         height: i32,
-    ) -> Result<BitMatrix, WriterException> {
+    ) -> ResultError<BitMatrix> {
         let hints: HashMap<EncodeHintType, &String> = HashMap::new();
         self.encode_hints(contents, format, width, height, hints)
     }
@@ -41,24 +41,23 @@ impl Writer for QRCodeWriter {
         width: i32,
         height: i32,
         hints: HashMap<EncodeHintType, &String>,
-    ) -> Result<BitMatrix, WriterException> {
+    ) -> ResultError<BitMatrix> {
         if contents.is_empty() {
-            return Err(WriterException {
-                reason: String::from("Found empty contents."),
-            });
+            return Err(Error::IllegalArgumentException(String::from(
+                "Found empty contents.",
+            )));
         }
         if !format.eq(&BarcodeFormat::QRCode) {
-            return Err(WriterException {
-                reason: String::from(format!("Can only encode QRCode, but got: {:?}", format)),
-            });
+            return Err(Error::IllegalArgumentException(format!(
+                "Can only encode QRCode, but got: {:?}",
+                format
+            )));
         }
         if width == 0 || height == 0 {
-            return Err(WriterException {
-                reason: String::from(format!(
-                    "Requested dimensions are too small: {}x{}",
-                    width, height
-                )),
-            });
+            return Err(Error::IllegalArgumentException(format!(
+                "Requested dimensions are too small: {}x{}",
+                width, height
+            )));
         }
 
         let error_correction_level;
@@ -96,7 +95,7 @@ impl QRCodeWriter {
         width: i32,
         height: i32,
         quiet_zone: i32,
-    ) -> Result<BitMatrix, WriterException> {
+    ) -> ResultError<BitMatrix> {
         let input = code.get_matrix();
         let input_width = input.get_width();
         let input_height = input.get_height();
@@ -113,7 +112,7 @@ impl QRCodeWriter {
         let left_padding = (output_width - (input_width * multiple)) / 2;
         let top_padding = (output_height - (input_height * multiple)) / 2;
 
-        let mut output = BitMatrix::new2(output_width, output_height);
+        let mut output = BitMatrix::new2(output_width, output_height)?;
 
         let mut output_y = top_padding;
         for input_y in 0..input_height {

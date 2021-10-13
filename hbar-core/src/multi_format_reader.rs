@@ -32,7 +32,9 @@ impl<B, S> Reader<B, S> for MultiFormatReader<B, S> {
         image: &BinaryBitmap<B, S>,
         hints: &HashMap<DecodeHintType, DecodeHintValue>,
     ) -> ResultError<Results> {
-        todo!()
+        self.set_hints(hints.clone());
+
+        self.decode_internal(image)
     }
 
     fn reset(&self) {
@@ -60,14 +62,10 @@ impl<B, S> MultiFormatReader<B, S> {
         for (k, v) in hints.clone() {
             self.hints.borrow_mut().insert(k, v);
         }
-        let hints = &hints;
-        // for (k, v) in &hints.into_keys().zip(&hints.into_values()) {
-        //     self.hints.borrow_mut().insert(k, v);
-        // }
+
         let try_harder = hints.contains_key(&DecodeHintType::TryHarder);
         let formats = hints.get(&DecodeHintType::PossibleFormats);
-        // .unwrap()
-        // .get_vec_barcode_format();
+
         let mut readers: Vec<Box<dyn Reader<B, S>>> = Vec::new();
         if let Some(formats) = formats {
             let formats = formats.get_vec_barcode_format();
@@ -85,30 +83,30 @@ impl<B, S> MultiFormatReader<B, S> {
             // Put 1D readers upfront in "normal" mode
             if add_one_dreader && !try_harder {
                 // readers.push(value)
-                todo!()
+                // todo!()
             }
             if formats.contains(&BarcodeFormat::QRCode) {
                 readers.push(Box::new(QRCodeReader::new()))
             }
 
             if formats.contains(&BarcodeFormat::DataMatrix) {
-                todo!()
+                // todo!()
             }
 
             if formats.contains(&BarcodeFormat::Aztec) {
-                todo!()
+                // todo!()
             }
 
             if formats.contains(&BarcodeFormat::PDF417) {
-                todo!()
+                // todo!()
             }
 
             if formats.contains(&BarcodeFormat::MaxiCode) {
-                todo!()
+                // todo!()
             }
             // At end in "try harder" mode
             if add_one_dreader && try_harder {
-                todo!()
+                // todo!()
             }
         }
         if readers.is_empty() {

@@ -86,6 +86,7 @@ impl DecoderConfig {
             hints.insert(DecodeHintType::TryHarder, DecodeHintValue::BOOL(true));
         }
 
+        println!("pure_barcode: {:?}", self.pure_barcode);
         if self.pure_barcode {
             hints.insert(DecodeHintType::PureBarcode, DecodeHintValue::BOOL(true));
         }

@@ -3,12 +3,14 @@ use std::borrow::Borrow;
 use crate::Error;
 use crate::LuminanceSource;
 
+use std::rc::Rc;
+
 pub struct InvertedLuminanceSource {
-    delegate: Box<dyn LuminanceSource>,
+    delegate: Rc<dyn LuminanceSource>,
 }
 
 impl InvertedLuminanceSource {
-    pub fn new(delegate: Box<dyn LuminanceSource>) -> InvertedLuminanceSource {
+    pub fn new(delegate: Rc<dyn LuminanceSource>) -> InvertedLuminanceSource {
         InvertedLuminanceSource { delegate: delegate }
     }
 }
@@ -52,8 +54,8 @@ impl LuminanceSource for InvertedLuminanceSource {
         top: u32,
         width: u32,
         height: u32,
-    ) -> Result<Box<dyn LuminanceSource>, Error> {
-        Ok(Box::new(InvertedLuminanceSource::new(
+    ) -> Result<Rc<dyn LuminanceSource>, Error> {
+        Ok(Rc::new(InvertedLuminanceSource::new(
             self.delegate.crop(left, top, width, height)?,
         )))
     }
@@ -62,18 +64,18 @@ impl LuminanceSource for InvertedLuminanceSource {
         self.delegate.is_rotate_supported()
     }
 
-    fn invert(&self) -> Result<&Box<dyn LuminanceSource>, Error> {
-        Ok(&self.delegate)
+    fn invert(&self) -> Result<Rc<dyn LuminanceSource>, Error> {
+        Ok(Rc::clone(&self.delegate))
     }
 
-    fn rotate_counter_clockwise(&self) -> Result<Box<dyn LuminanceSource>, Error> {
-        Ok(Box::new(InvertedLuminanceSource::new(
+    fn rotate_counter_clockwise(&self) -> Result<Rc<dyn LuminanceSource>, Error> {
+        Ok(Rc::new(InvertedLuminanceSource::new(
             self.delegate.rotate_counter_clockwise()?,
         )))
     }
 
-    fn rotate_counter_clockwise45(&self) -> Result<Box<dyn LuminanceSource>, Error> {
-        Ok(Box::new(InvertedLuminanceSource::new(
+    fn rotate_counter_clockwise45(&self) -> Result<Rc<dyn LuminanceSource>, Error> {
+        Ok(Rc::new(InvertedLuminanceSource::new(
             self.delegate.rotate_counter_clockwise45()?,
         )))
     }
