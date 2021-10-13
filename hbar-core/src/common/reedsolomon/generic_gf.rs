@@ -1,6 +1,8 @@
 use crate::common::reedsolomon::GenericGFPoly;
 use crate::Error;
 
+use std::rc::Rc;
+
 pub enum GenericGFEnum {
     AztecData12,
     AztecData10,
@@ -81,11 +83,11 @@ impl GenericGF {
     }
 
     pub fn get_zero(&self) -> Result<GenericGFPoly, Error> {
-        GenericGFPoly::new(self.clone(), vec![0])
+        GenericGFPoly::new(Rc::new(self.clone()), vec![0])
     }
 
     pub fn get_one(&self) -> Result<GenericGFPoly, Error> {
-        GenericGFPoly::new(self.clone(), vec![1])
+        GenericGFPoly::new(Rc::new(self.clone()), vec![1])
     }
 
     /**
@@ -106,7 +108,7 @@ impl GenericGF {
         let mut coefficients = vec![0; degree as usize + 1];
         coefficients[0] = coefficient;
 
-        GenericGFPoly::new(self.clone(), coefficients)
+        GenericGFPoly::new(Rc::new(self.clone()), coefficients)
     }
 
     /**

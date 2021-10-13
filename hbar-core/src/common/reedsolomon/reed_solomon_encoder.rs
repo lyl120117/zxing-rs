@@ -1,17 +1,19 @@
 use crate::common::reedsolomon::{GenericGF, GenericGFPoly};
 use crate::Error;
 
+use std::rc::Rc;
+
 pub struct ReedSolomonEncoder {
-    field: GenericGF,
+    field: Rc<GenericGF>,
     cached_generators: Vec<GenericGFPoly>,
 }
 
 impl ReedSolomonEncoder {
-    pub fn new(field: &GenericGF) -> Result<ReedSolomonEncoder, Error> {
+    pub fn new(field: Rc<GenericGF>) -> Result<ReedSolomonEncoder, Error> {
         let mut cached_generators = Vec::new();
-        cached_generators.push(GenericGFPoly::new(field.clone(), vec![1])?);
+        cached_generators.push(GenericGFPoly::new(Rc::clone(&field), vec![1])?);
         Ok(ReedSolomonEncoder {
-            field: field.clone(),
+            field: Rc::clone(&field),
             cached_generators: cached_generators,
         })
     }

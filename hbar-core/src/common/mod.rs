@@ -15,5 +15,5 @@ pub use decoder_result::DecoderResult;
 pub use detector::MathUtils;
 pub use global_histogram_binarizer::GlobalHistogramBinarizer;
 pub use hybrid_binarizer::HybridBinarizer;
-pub use reedsolomon::{GenericGFEnum, ReedSolomonEncoder};
+pub use reedsolomon::{GenericGF, GenericGFEnum, ReedSolomonDecoder, ReedSolomonEncoder};
 pub use system_times::SystemTimes;

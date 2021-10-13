@@ -1,9 +1,11 @@
 use strum_macros::{EnumString, EnumVariantNames, ToString};
 // You need to import the trait, to have access to VARIANTS
-use crate::Error;
+use crate::{Error, ResultError};
 use strum::VariantNames;
 
-#[derive(Debug, PartialEq, Eq, Hash, EnumString, ToString, EnumVariantNames)]
+use std::rc::Rc;
+
+#[derive(Debug, PartialEq, Eq, Hash, EnumString, ToString, EnumVariantNames, Clone)]
 #[strum(serialize_all = "kebab_case")]
 pub enum ErrorCorrectionLevel {
     /** L = ~7% correction */
@@ -17,6 +19,13 @@ pub enum ErrorCorrectionLevel {
 }
 
 impl ErrorCorrectionLevel {
+    const FOR_BITS: [ErrorCorrectionLevel; 4] = [
+        ErrorCorrectionLevel::L,
+        ErrorCorrectionLevel::M,
+        ErrorCorrectionLevel::Q,
+        ErrorCorrectionLevel::H,
+    ];
+
     pub fn ordinal(&self) -> usize {
         match self {
             ErrorCorrectionLevel::L => 0,
@@ -53,5 +62,17 @@ impl ErrorCorrectionLevel {
             ErrorCorrectionLevel::Q => 0x03,
             ErrorCorrectionLevel::H => 0x02,
         }
+    }
+
+    /**
+     * @param bits int containing the two bits encoding a QR Code's error correction level
+     * @return ErrorCorrectionLevel representing the encoded error correction level
+     */
+    pub fn forBits(bits: i32) -> ResultError<Rc<ErrorCorrectionLevel>> {
+        if bits < 0 || bits >= ErrorCorrectionLevel::FOR_BITS.len() as i32 {
+            return Err(Error::IllegalArgumentException(String::from("")));
+        }
+        let ec_level = &ErrorCorrectionLevel::FOR_BITS[bits as usize];
+        Ok(Rc::new(ec_level.clone()))
     }
 }

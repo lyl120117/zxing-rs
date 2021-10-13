@@ -40,6 +40,27 @@ impl BitMatrix {
     }
 
     /**
+     * Interprets a 2D array of booleans as a {@code BitMatrix}, where "true" means an "on" bit.
+     *
+     * @param image bits of the image, as a row-major 2D array. Elements are arrays representing rows
+     * @return {@code BitMatrix} representation of image
+     */
+    pub fn parse_image(image: &Vec<Vec<bool>>) -> ResultError<BitMatrix> {
+        let height = image.len() as i32;
+        let width = image[0].len() as i32;
+        let mut bits = BitMatrix::new2(width, height)?;
+        for i in 0..height {
+            let imageI = &image[i as usize];
+            for j in 0..width {
+                if imageI[j as usize] {
+                    bits.set(j as u32, i as u32);
+                }
+            }
+        }
+        Ok(bits)
+    }
+
+    /**
      * <p>Gets the requested bit, where true means black.</p>
      *
      * @param x The horizontal component (i.e. which column)
@@ -138,5 +159,26 @@ impl BitMatrix {
         x += bit;
 
         Some(vec![x, y])
+    }
+
+    /**
+     * @return The width of the matrix
+     */
+    pub fn getWidth(&self) -> i32 {
+        self.width
+    }
+
+    /**
+     * @return The height of the matrix
+     */
+    pub fn getHeight(&self) -> i32 {
+        self.height
+    }
+
+    /**
+     * @return The row size of the matrix
+     */
+    pub fn getRowSize(&self) -> i32 {
+        self.row_size
     }
 }

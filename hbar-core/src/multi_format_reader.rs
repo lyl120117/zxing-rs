@@ -1,8 +1,8 @@
-use crate::BinaryBitmap;
 use crate::QRCodeReader;
 use crate::Reader;
 use crate::Results;
 use crate::{BarcodeFormat, DecodeHintType, DecodeHintValue};
+use crate::{Binarizer, BinaryBitmap, LuminanceSource};
 use crate::{Error, ResultError};
 
 use std::cell::RefCell;
@@ -19,7 +19,11 @@ pub struct MultiFormatReader<B, S> {
     readers: RefCell<Vec<Box<dyn Reader<B, S>>>>,
 }
 
-impl<B, S> Reader<B, S> for MultiFormatReader<B, S> {
+impl<B, S> Reader<B, S> for MultiFormatReader<B, S>
+where
+    B: Binarizer<S>,
+    S: LuminanceSource,
+{
     fn decode(&self, image: &BinaryBitmap<B, S>) -> ResultError<Results> {
         let hint: HashMap<DecodeHintType, DecodeHintValue> = HashMap::new();
         self.set_hints(hint);
@@ -42,7 +46,11 @@ impl<B, S> Reader<B, S> for MultiFormatReader<B, S> {
     }
 }
 
-impl<B, S> MultiFormatReader<B, S> {
+impl<B, S> MultiFormatReader<B, S>
+where
+    B: Binarizer<S>,
+    S: LuminanceSource,
+{
     pub fn new() -> ResultError<MultiFormatReader<B, S>> {
         Ok(MultiFormatReader {
             hints: RefCell::new(HashMap::new()),

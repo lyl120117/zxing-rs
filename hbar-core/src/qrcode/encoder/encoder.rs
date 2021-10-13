@@ -8,6 +8,7 @@ use crate::Error;
 use crate::WriterException;
 
 use std::collections::HashMap;
+use std::rc::Rc;
 use std::str::FromStr;
 
 pub struct Encoder {
@@ -632,7 +633,7 @@ impl Encoder {
             to_encode,
             to_encode.len()
         );
-        ReedSolomonEncoder::new(&GenericGFEnum::QrCodeField256.get())
+        ReedSolomonEncoder::new(Rc::new(GenericGFEnum::QrCodeField256.get()))
             .unwrap()
             .encode(&mut to_encode, num_ec_bytes_in_block)
             .unwrap();

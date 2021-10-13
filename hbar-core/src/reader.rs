@@ -1,6 +1,6 @@
-use crate::BinaryBitmap;
 use crate::ResultError;
 use crate::Results;
+use crate::{Binarizer, BinaryBitmap, LuminanceSource};
 use crate::{DecodeHintType, DecodeHintValue};
 
 use std::collections::HashMap;
@@ -15,7 +15,11 @@ use std::collections::HashMap;
  * format is present within the image as well, and then decodes it accordingly.
  *
  */
-pub trait Reader<B, S> {
+pub trait Reader<B, S>
+where
+    B: Binarizer<S>,
+    S: LuminanceSource,
+{
     /**
      * Locates and decodes a barcode in some format within an image.
      *

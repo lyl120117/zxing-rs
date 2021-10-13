@@ -1,9 +1,11 @@
 use crate::common::reedsolomon::GenericGF;
 use crate::Error;
 
+use std::rc::Rc;
+
 #[derive(Clone, Debug, Eq, PartialEq)] // we implement the Copy trait
 pub struct GenericGFPoly {
-    field: GenericGF,
+    field: Rc<GenericGF>,
     coefficients: Vec<i32>,
 }
 
@@ -17,7 +19,7 @@ impl GenericGFPoly {
      * or if leading coefficient is 0 and this is not a
      * constant polynomial (that is, it is not the monomial "0")
      */
-    pub fn new(field: GenericGF, coefficients: Vec<i32>) -> Result<GenericGFPoly, Error> {
+    pub fn new(field: Rc<GenericGF>, coefficients: Vec<i32>) -> Result<GenericGFPoly, Error> {
         if coefficients.len() == 0 {
             return Err(Error::IllegalArgumentException(format!(
                 "coefficients length is zero"
@@ -81,7 +83,7 @@ impl GenericGFPoly {
     /**
      * @return evaluation of this polynomial at a given point
      */
-    fn evaluate_at(&self, a: i32) -> Result<i32, Error> {
+    pub fn evaluate_at(&self, a: i32) -> Result<i32, Error> {
         if a < 0 {
             return Err(Error::IllegalArgumentException(format!(
                 "evaluate at error a: {}",

@@ -199,7 +199,7 @@ where
     S: LuminanceSource,
 {
     fn get_black_row(&self, y: u32, row: &super::BitArray) -> ResultError<BitArray> {
-        todo!()
+        self.binary.get_black_row(y, row)
     }
 
     /**
@@ -243,12 +243,13 @@ where
                 &blackPoints,
                 &mut newMatrix,
             );
+            self.matrix = Some(newMatrix);
         } else {
             // If the image is too small, fall back to the global histogram approach.
             self.matrix = Some(self.binary.get_black_matrix()?);
         }
 
-        todo!()
+        Ok(self.matrix.as_ref().unwrap().clone())
     }
 
     fn create_binarizer(&self, source: S) -> Self {

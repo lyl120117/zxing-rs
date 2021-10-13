@@ -8,5 +8,8 @@ pub enum Error {
     TryFromIntError(String),
     Infallible(String),
     NotFoundException(String),
+    ReedSolomonException(String),
+    IllegalStateException(String),
+    FormatException(String),
 }
 pub type ResultError<T> = Result<T, Error>;
