@@ -2,10 +2,11 @@ use crate::common::BitMatrix;
 use crate::{Error, ResultError};
 
 use super::FormatInformation;
-use super::Version;
+use super::{Version, Versions};
 
 pub struct BitMatrixParser {
     bitMatrix: BitMatrix,
+    versions: Versions,
     parsedVersion: Option<Version>,
     parsedFormatInfo: Option<FormatInformation>,
     mirror: bool,
@@ -27,6 +28,7 @@ impl BitMatrixParser {
             parsedVersion: None,
             parsedFormatInfo: None,
             mirror: false,
+            versions: Versions::new(),
         })
     }
 
@@ -75,16 +77,39 @@ impl BitMatrixParser {
         Err(Error::FormatException(String::from("")))
     }
 
-    // /**
-    //  * <p>Reads version information from one of its two locations within the QR Code.</p>
-    //  *
-    //  * @return {@link Version} encapsulating the QR Code's version
-    //  * @throws FormatException if both version information locations cannot be parsed as
-    //  * the valid encoding of version information
-    //  */
-    // fn readVersion(&self) -> Version{
+    /**
+     * <p>Reads version information from one of its two locations within the QR Code.</p>
+     *
+     * @return {@link Version} encapsulating the QR Code's version
+     * @throws FormatException if both version information locations cannot be parsed as
+     * the valid encoding of version information
+     */
+    fn readVersion(&self) -> ResultError<Version> {
+        if let Some(version) = &self.parsedVersion {
+            return Ok(version.clone());
+        }
 
-    // }
+        let dimension = self.bitMatrix.getHeight();
+
+        let provisionalVersion = (dimension - 17) / 4;
+        if provisionalVersion <= 6 {
+            return Ok(self
+                .versions
+                .get_version_for_number(provisionalVersion)?
+                .clone());
+        }
+
+        // Read top-right version info: 3 wide by 6 tall
+        let mut versionBits = 0;
+        let ijMin = dimension - 11;
+        for j in (0..6).rev() {
+            for i in (ijMin..dimension - 8).rev() {
+                versionBits = self.copyBit(i, j, versionBits);
+            }
+        }
+
+        todo!()
+    }
 
     fn copyBit(&self, i: i32, j: i32, versionBits: i32) -> i32 {
         let bit = if self.mirror {

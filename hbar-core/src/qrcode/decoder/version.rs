@@ -1,5 +1,5 @@
 use crate::qrcode::decoder::ErrorCorrectionLevel;
-use crate::WriterException;
+use crate::{Error, ResultError};
 /**
  * <p>Encapsulates the parameters for one error-correction block in one symbol version.
  * This includes the number of data codewords, and the number of times a block with these
@@ -70,7 +70,6 @@ impl ECBlocks {
 
 #[derive(Debug, Clone)]
 pub struct Version {
-    version_decode_info: Vec<i32>,
     version_number: i32,
     alignment_pattern_centers: Vec<i32>,
     ec_blocks: Vec<ECBlocks>,
@@ -183,17 +182,22 @@ impl Versions {
         }
     }
 
-    pub fn get_version_for_number(&self, version_number: i32) -> Result<&Version, WriterException> {
+    pub fn get_version_for_number(&self, version_number: i32) -> ResultError<&Version> {
         if version_number < 1 || version_number > 40 {
-            return Err(WriterException {
-                reason: String::from("Version number only has to be between 1 and 40"),
-            });
+            return Err(Error::WriterException(String::from("")));
         }
         Ok(&self.versions[(version_number - 1) as usize])
     }
 }
 
 impl Version {
+    const VERSION_DECODE_INFO: [i32; 34] = [
+        0x07C94, 0x085BC, 0x09A99, 0x0A4D3, 0x0BBF6, 0x0C762, 0x0D847, 0x0E60D, 0x0F928, 0x10B78,
+        0x1145D, 0x12A17, 0x13532, 0x149A6, 0x15683, 0x168C9, 0x177EC, 0x18EC4, 0x191E1, 0x1AFAB,
+        0x1B08E, 0x1CC1A, 0x1D33F, 0x1ED75, 0x1F250, 0x209D5, 0x216F0, 0x228BA, 0x2379F, 0x24B0B,
+        0x2542E, 0x26A64, 0x27541, 0x28C69,
+    ];
+
     pub fn new(
         version_number: i32,
         alignment_pattern_centers: Vec<i32>,
@@ -207,12 +211,6 @@ impl Version {
         }
 
         Version {
-            version_decode_info: vec![
-                0x07C94, 0x085BC, 0x09A99, 0x0A4D3, 0x0BBF6, 0x0C762, 0x0D847, 0x0E60D, 0x0F928,
-                0x10B78, 0x1145D, 0x12A17, 0x13532, 0x149A6, 0x15683, 0x168C9, 0x177EC, 0x18EC4,
-                0x191E1, 0x1AFAB, 0x1B08E, 0x1CC1A, 0x1D33F, 0x1ED75, 0x1F250, 0x209D5, 0x216F0,
-                0x228BA, 0x2379F, 0x24B0B, 0x2542E, 0x26A64, 0x27541, 0x28C69,
-            ],
             version_number: version_number,
             alignment_pattern_centers: alignment_pattern_centers,
             ec_blocks: ec_blocks,
@@ -238,5 +236,17 @@ impl Version {
 
     pub fn get_ec_blocks_for_level(&self, ec_level: &ErrorCorrectionLevel) -> &ECBlocks {
         &self.ec_blocks[ec_level.ordinal()]
+    }
+
+    pub fn decodeVersionInformation(versionBits: i32) -> ResultError<Option<Version>> {
+        let bestDifference = i32::MAX;
+        let bestVersion = 0;
+        for i in 0..Version::VERSION_DECODE_INFO.len() {
+            let targetVersion = Version::VERSION_DECODE_INFO[i];
+            // Do the version info bits match exactly? done.
+            if targetVersion == versionBits {}
+        }
+
+        todo!()
     }
 }
